@@ -6,6 +6,9 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Component
 public class MessageReceiver {
 
@@ -18,6 +21,7 @@ public class MessageReceiver {
 
     @RabbitListener(queues = "${messaging.message-processor.inbound-queue}")
     public void handleMessage(final String message) {
-        System.out.println("message = " + jsonConverter.fromJson(message, SampleMessage.class));
+        List<SampleMessage> sampleMessages = Arrays.asList(jsonConverter.fromJson(message, SampleMessage[].class));
+        System.out.println("message = " + sampleMessages);
     }
 }
