@@ -1,1 +1,4 @@
-
+messaging:
+  message-processor:
+    inbound-topic-exchange: test-topic-exchange-1
+    inbound-queue: test-queue-1

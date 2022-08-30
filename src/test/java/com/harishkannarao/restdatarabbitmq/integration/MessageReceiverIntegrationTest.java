@@ -6,6 +6,9 @@ public class MessageReceiverIntegrationTest extends AbstractBaseIntegrationTest 
 
     @Test
     public void sendMessage_toMessageProcessorQueue() {
-        rabbitTemplate().convertAndSend("test-topic-exchange-1", "messageProcessor", "Hello World !!!");
+        var message = """
+                {"value":"Hello World"}
+                """;
+        rabbitTemplate().convertAndSend("test-topic-exchange-1", "messageProcessor", message);
     }
 }
