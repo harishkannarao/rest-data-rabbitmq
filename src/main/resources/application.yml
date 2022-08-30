@@ -1,3 +1,8 @@
 spring:
   flyway:
     locations: classpath:db/migration
+
+messaging:
+  message-processor:
+    topic-exchange: test-topic-exchange-1
+    inbound-queue: test-queue-1

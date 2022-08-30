@@ -4,6 +4,7 @@ import com.harishkannarao.restdatarabbitmq.runner.PostgresTestRunner;
 import com.harishkannarao.restdatarabbitmq.runner.RabbitMqTestRunner;
 import com.harishkannarao.restdatarabbitmq.runner.SpringBootTestRunner;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import java.util.Collections;
 import java.util.Map;
@@ -54,4 +55,7 @@ public abstract class AbstractBaseIntegrationTest {
         return SpringBootTestRunner.getBean(clazz);
     }
 
+    protected RabbitTemplate rabbitTemplate() {
+        return getBean(RabbitTemplate.class);
+    }
 }
