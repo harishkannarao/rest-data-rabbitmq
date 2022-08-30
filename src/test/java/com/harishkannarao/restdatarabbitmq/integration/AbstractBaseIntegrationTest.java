@@ -1,6 +1,7 @@
 package com.harishkannarao.restdatarabbitmq.integration;
 
 import com.harishkannarao.restdatarabbitmq.runner.PostgresTestRunner;
+import com.harishkannarao.restdatarabbitmq.runner.RabbitMqTestRunner;
 import com.harishkannarao.restdatarabbitmq.runner.SpringBootTestRunner;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -14,6 +15,9 @@ public abstract class AbstractBaseIntegrationTest {
     void globalSetup() {
         if (!PostgresTestRunner.isRunning()) {
             PostgresTestRunner.start();
+        }
+        if (!RabbitMqTestRunner.isRunning()) {
+            RabbitMqTestRunner.start();
         }
         if (!SpringBootTestRunner.isRunning()) {
             SpringBootTestRunner.start(getIntegrationTestProperties());
@@ -32,6 +36,10 @@ public abstract class AbstractBaseIntegrationTest {
         properties.setProperty("spring.flyway.url", PostgresTestRunner.getJdbcUrl());
         properties.setProperty("spring.flyway.user", PostgresTestRunner.getUsername());
         properties.setProperty("spring.flyway.password", PostgresTestRunner.getPassword());
+        properties.setProperty("spring.rabbitmq.host", RabbitMqTestRunner.getHost());
+        properties.setProperty("spring.rabbitmq.port", RabbitMqTestRunner.getPort().toString());
+        properties.setProperty("spring.rabbitmq.username", RabbitMqTestRunner.getUsername());
+        properties.setProperty("spring.rabbitmq.password", RabbitMqTestRunner.getPassword());
 
         getAdditionalTestProperties().forEach(properties::setProperty);
 
