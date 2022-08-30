@@ -14,8 +14,8 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class RabbitMqConfiguration {
-    @Value("${messaging.message-processor.topic-exchange}")
-    private String messageProcessorExchange;
+    @Value("${messaging.message-processor.inbound-topic-exchange}")
+    private String messageProcessorInboundTopicExchange;
     @Value("${messaging.message-processor.inbound-queue}")
     private String messageProcessorInboundQueue;
 
@@ -25,8 +25,8 @@ public class RabbitMqConfiguration {
     }
 
     @Bean
-    TopicExchange messageProcessorExchange() {
-        return new TopicExchange(messageProcessorExchange);
+    TopicExchange messageProcessorInboundTopicExchange() {
+        return new TopicExchange(messageProcessorInboundTopicExchange);
     }
 
     @Bean
