@@ -5,6 +5,7 @@ import com.harishkannarao.restdatarabbitmq.runner.RabbitMqTestRunner;
 import com.harishkannarao.restdatarabbitmq.runner.SpringBootTestRunner;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.core.env.Environment;
 
 import java.util.Collections;
 import java.util.Map;
@@ -53,6 +54,10 @@ public abstract class AbstractBaseIntegrationTest {
 
     protected <T> T getBean(Class<T> clazz) {
         return SpringBootTestRunner.getBean(clazz);
+    }
+
+    protected String getProperty(String key) {
+        return getBean(Environment.class).getProperty(key);
     }
 
     protected RabbitTemplate rabbitTemplate() {
