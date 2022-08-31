@@ -1,12 +1,15 @@
 package com.harishkannarao.restdatarabbitmq.entity;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
-@Data
+import java.util.UUID;
+
+@Value
 @Builder(toBuilder = true)
 @Jacksonized
 public class SampleMessage {
-    private String value;
+    UUID id;
+    String value;
 }

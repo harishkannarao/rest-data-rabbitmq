@@ -23,10 +23,27 @@ public class RabbitMqConfiguration {
     }
 
     @Bean
-    Binding binding(@Qualifier("messageProcessorInboundQueue") Queue queue,
+    Binding inboundBinding(@Qualifier("messageProcessorInboundQueue") Queue queue,
                     @Qualifier("messageProcessorInboundTopicExchange") TopicExchange exchange,
                     @Value("${messaging.message-processor.inbound-routing-key}") String messageProcessorInboundRoutingKey) {
         return BindingBuilder.bind(queue).to(exchange).with(messageProcessorInboundRoutingKey);
+    }
+
+    @Bean(name = "messageProcessorOutboundQueue")
+    Queue messageProcessorOutboundQueue(@Value("${messaging.message-processor.outbound-queue}") String messageProcessorOutboundQueue) {
+        return new Queue(messageProcessorOutboundQueue, false);
+    }
+
+    @Bean(name = "messageProcessorOutboundTopicExchange")
+    TopicExchange messageProcessorOutboundTopicExchange(@Value("${messaging.message-processor.outbound-topic-exchange}") String messageProcessorOutboundTopicExchange) {
+        return new TopicExchange(messageProcessorOutboundTopicExchange);
+    }
+
+    @Bean
+    Binding outboundBinding(@Qualifier("messageProcessorOutboundQueue") Queue queue,
+                           @Qualifier("messageProcessorOutboundTopicExchange") TopicExchange exchange,
+                           @Value("${messaging.message-processor.outbound-routing-key}") String messageProcessorOutboundRoutingKey) {
+        return BindingBuilder.bind(queue).to(exchange).with(messageProcessorOutboundRoutingKey);
     }
 
 }
