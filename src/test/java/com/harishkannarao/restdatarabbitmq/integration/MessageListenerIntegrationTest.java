@@ -2,7 +2,7 @@ package com.harishkannarao.restdatarabbitmq.integration;
 
 import org.junit.jupiter.api.Test;
 
-public class MessageReceiverIntegrationTest extends AbstractBaseIntegrationTest {
+public class MessageListenerIntegrationTest extends AbstractBaseIntegrationTest {
 
     @Test
     public void sendMessage_toMessageProcessorQueue() {

@@ -12,13 +12,13 @@ import java.util.Arrays;
 import java.util.List;
 
 @Component
-public class MessageReceiver {
+public class MessageListener {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageReceiver.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageListener.class);
     private final JsonConverter jsonConverter;
 
     @Autowired
-    public MessageReceiver(JsonConverter jsonConverter) {
+    public MessageListener(JsonConverter jsonConverter) {
         this.jsonConverter = jsonConverter;
     }
 
