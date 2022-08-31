@@ -1,4 +1,5 @@
 messaging:
   message-processor:
     inbound-topic-exchange: test-topic-exchange-1
+    inbound-routing-key: messageProcessor
     inbound-queue: test-queue-1
