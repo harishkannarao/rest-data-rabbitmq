@@ -3,6 +3,8 @@ package com.harishkannarao.restdatarabbitmq.entity;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.Collections;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -23,4 +25,11 @@ public class Course {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_course_teacher"))
     @NonNull
     private Teacher teacher;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "student_course",
+            joinColumns = @JoinColumn(name = "course_id"),
+            inverseJoinColumns = @JoinColumn(name = "student_id"))
+    @Builder.Default
+    private Set<Student> students = Collections.emptySet();
 }
