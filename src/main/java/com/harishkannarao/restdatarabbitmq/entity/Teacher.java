@@ -1,7 +1,6 @@
 package com.harishkannarao.restdatarabbitmq.entity;
 
 import lombok.*;
-import org.hibernate.annotations.Type;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -14,7 +13,6 @@ import java.util.UUID;
 @Builder(toBuilder = true)
 public class Teacher {
     @Id
-    @Type(type = "pg-uuid")
     @NonNull
     private UUID id;
     @NonNull

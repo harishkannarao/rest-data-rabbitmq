@@ -8,7 +8,7 @@ public class TeacherFixtures {
     public static Teacher randomTeacher() {
         return Teacher.builder()
                 .id(UUID.randomUUID())
-                .name("some name")
+                .name("some name " + UUID.randomUUID())
                 .email("some@example.com")
                 .pictureURL("https://some.example.com")
                 .build();
