@@ -2,9 +2,9 @@ package com.harishkannarao.restdatarabbitmq.entity;
 
 import lombok.*;
 
-import javax.persistence.*;
-import java.util.Collections;
-import java.util.Set;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.util.UUID;
 
 @Entity
@@ -12,7 +12,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
-@Table(name = "teacher")
+@Table(name = "student")
 public class Student {
     @Id
     @NonNull
@@ -21,7 +21,4 @@ public class Student {
     private String name;
     @NonNull
     private String email;
-    @ManyToMany(mappedBy = "students", fetch = FetchType.EAGER)
-    @Builder.Default
-    Set<Course> courses = Collections.emptySet();
 }

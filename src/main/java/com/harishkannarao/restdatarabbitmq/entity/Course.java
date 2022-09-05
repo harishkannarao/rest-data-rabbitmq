@@ -2,9 +2,9 @@ package com.harishkannarao.restdatarabbitmq.entity;
 
 import lombok.*;
 
-import javax.persistence.*;
-import java.util.Collections;
-import java.util.Set;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.util.UUID;
 
 @Entity
@@ -23,11 +23,4 @@ public class Course {
     private short rate;
     @NonNull
     private UUID teacherId;
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "student_course",
-            joinColumns = @JoinColumn(name = "course_id"),
-            inverseJoinColumns = @JoinColumn(name = "student_id"))
-    @Builder.Default
-    private Set<Student> students = Collections.emptySet();
 }
