@@ -21,10 +21,8 @@ public class Course {
     private String name;
     private int workload;
     private short rate;
-    @ManyToOne
-    @JoinColumn(foreignKey = @ForeignKey(name = "fk_course_teacher"))
     @NonNull
-    private Teacher teacher;
+    private UUID teacherId;
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "student_course",

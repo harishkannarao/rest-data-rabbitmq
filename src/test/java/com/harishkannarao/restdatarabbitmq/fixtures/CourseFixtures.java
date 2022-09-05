@@ -1,7 +1,6 @@
 package com.harishkannarao.restdatarabbitmq.fixtures;
 
 import com.harishkannarao.restdatarabbitmq.entity.Course;
-import com.harishkannarao.restdatarabbitmq.entity.Teacher;
 
 import java.util.UUID;
 
@@ -12,11 +11,11 @@ public class CourseFixtures {
                 .rate(Short.parseShort("5"))
                 .name("some-course-name")
                 .workload(2)
-                .teacher(TeacherFixtures.randomTeacher())
+                .teacherId(UUID.randomUUID())
                 .build();
     }
 
-    public static Course randomCourse(Teacher teacher) {
-        return randomCourse().toBuilder().teacher(teacher).build();
+    public static Course randomCourse(UUID teacherId) {
+        return randomCourse().toBuilder().teacherId(teacherId).build();
     }
 }

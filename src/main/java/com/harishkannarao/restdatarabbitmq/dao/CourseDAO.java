@@ -9,5 +9,4 @@ import java.util.UUID;
 public interface CourseDAO extends PagingAndSortingRepository<Course, UUID> {
 
     List<Course> findByTeacherId(UUID teacherId);
-    List<Course> findByTeacherName(String name);
 }

@@ -20,29 +20,12 @@ public class CourseDAOIntegrationTest extends AbstractBaseIntegrationTest {
         Teacher teacher2 = TeacherFixtures.randomTeacher();
         teacherDAO().save(teacher1);
         teacherDAO().save(teacher2);
-        Course course1 = CourseFixtures.randomCourse(teacher1);
-        Course course2 = CourseFixtures.randomCourse(teacher2);
+        Course course1 = CourseFixtures.randomCourse(teacher1.getId());
+        Course course2 = CourseFixtures.randomCourse(teacher2.getId());
         courseDAO().save(course1);
         courseDAO().save(course2);
 
         List<Course> byTeacherId = courseDAO().findByTeacherId(teacher1.getId());
-        assertThat(byTeacherId)
-                .hasSize(1)
-                .containsExactly(course1);
-    }
-
-    @Test
-    public void test_findByTeacherName() {
-        Teacher teacher1 = TeacherFixtures.randomTeacher();
-        Teacher teacher2 = TeacherFixtures.randomTeacher();
-        teacherDAO().save(teacher1);
-        teacherDAO().save(teacher2);
-        Course course1 = CourseFixtures.randomCourse(teacher1);
-        Course course2 = CourseFixtures.randomCourse(teacher2);
-        courseDAO().save(course1);
-        courseDAO().save(course2);
-
-        List<Course> byTeacherId = courseDAO().findByTeacherName(teacher1.getName());
         assertThat(byTeacherId)
                 .hasSize(1)
                 .containsExactly(course1);
