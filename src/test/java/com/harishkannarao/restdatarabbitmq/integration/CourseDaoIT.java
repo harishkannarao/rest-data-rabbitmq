@@ -12,7 +12,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class CourseDAOIntegrationTest extends AbstractBaseIntegrationTest {
+public class CourseDaoIT extends AbstractBaseIT {
 
     @Test
     public void test_findByTeacherId() {

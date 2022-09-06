@@ -13,7 +13,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
-public class MessageListenerIntegrationTest extends AbstractBaseIntegrationTest {
+public class MessageListenerIT extends AbstractBaseIT {
 
     private JsonConverter jsonConverter;
     private String topicExchange;

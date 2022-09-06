@@ -15,7 +15,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class StudentCourseDAOIntegrationTest extends AbstractBaseIntegrationTest {
+public class StudentCourseDaoIT extends AbstractBaseIT {
 
     @Test
     public void test_findByStudentAndCourseId_findByStudentId_findByCourseId() {

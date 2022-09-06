@@ -9,7 +9,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class TeacherDAOIntegrationTest extends AbstractBaseIntegrationTest {
+public class TeacherDaoIT extends AbstractBaseIT {
 
     @Test
     public void test_CRUD() {

@@ -5,13 +5,14 @@ import com.harishkannarao.restdatarabbitmq.runner.RabbitMqTestRunner;
 import com.harishkannarao.restdatarabbitmq.runner.SpringBootTestRunner;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.env.Environment;
 
 import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
-public abstract class AbstractBaseIntegrationTest {
+public abstract class AbstractBaseIT {
 
     @BeforeEach
     void globalSetup() {
@@ -62,5 +63,13 @@ public abstract class AbstractBaseIntegrationTest {
 
     protected RabbitTemplate rabbitTemplate() {
         return getBean(RabbitTemplate.class);
+    }
+
+    protected String applicationUrl() {
+        return SpringBootTestRunner.getApplicationUrl();
+    }
+
+    protected TestRestTemplate testRestTemplate() {
+        return new TestRestTemplate();
     }
 }
