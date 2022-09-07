@@ -8,8 +8,6 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.env.Environment;
 
-import java.util.Collections;
-import java.util.Map;
 import java.util.Properties;
 
 public abstract class AbstractBaseIT {
@@ -23,13 +21,13 @@ public abstract class AbstractBaseIT {
             RabbitMqTestRunner.start();
         }
         if (!SpringBootTestRunner.isRunning()) {
-            SpringBootTestRunner.start(getIntegrationTestProperties());
-        } else if (!getIntegrationTestProperties().equals(SpringBootTestRunner.getProperties())) {
-            SpringBootTestRunner.restart(getIntegrationTestProperties());
+            SpringBootTestRunner.start(createIntegrationTestProperties());
+        } else if (!createIntegrationTestProperties().equals(SpringBootTestRunner.getProperties())) {
+            SpringBootTestRunner.restart(createIntegrationTestProperties());
         }
     }
 
-    private Properties getIntegrationTestProperties() {
+    public static Properties createIntegrationTestProperties() {
         Properties properties = new Properties();
         properties.setProperty("server.port", "0");
         properties.setProperty("spring.profiles.active", "int-test");
@@ -44,13 +42,7 @@ public abstract class AbstractBaseIT {
         properties.setProperty("spring.rabbitmq.username", RabbitMqTestRunner.getUsername());
         properties.setProperty("spring.rabbitmq.password", RabbitMqTestRunner.getPassword());
 
-        getAdditionalTestProperties().forEach(properties::setProperty);
-
         return properties;
-    }
-
-    protected Map<String, String> getAdditionalTestProperties() {
-        return Collections.emptyMap();
     }
 
     protected <T> T getBean(Class<T> clazz) {
