@@ -50,7 +50,7 @@ public class StudentApiSteps extends AbstractBaseSteps {
     @And("student-api-get-by-id has details of student {string}")
     public void studentApiGetByIdHasDetailsOfStudent(String canonicalStudentId) {
         Student expectedStudent = dataFixturesHolder.getStudents().get(canonicalStudentId);
-        StudentWithCourseResponseDto result = jsonConverter().fromJson(studentApiHolder.getResponse().getBody(), StudentWithCourseResponseDto.class);
+        StudentWithCourseResponseDto result = extractStudentWithCourseResponseDto();
         assertThat(result.getId()).isEqualTo(expectedStudent.getId());
         assertThat(result.getName()).isEqualTo(expectedStudent.getName());
         assertThat(result.getEmail()).isEqualTo(expectedStudent.getEmail());
@@ -61,7 +61,11 @@ public class StudentApiSteps extends AbstractBaseSteps {
         String[] expectedCourseNames = Arrays.stream(canonicalCourseIds.split(","))
                 .map(s -> dataFixturesHolder.getCourses().get(s).getName())
                 .toArray(String[]::new);
-        StudentWithCourseResponseDto result = jsonConverter().fromJson(studentApiHolder.getResponse().getBody(), StudentWithCourseResponseDto.class);
+        StudentWithCourseResponseDto result = extractStudentWithCourseResponseDto();
         assertThat(result.getRegisteredCourses()).containsExactlyInAnyOrder(expectedCourseNames);
+    }
+
+    private StudentWithCourseResponseDto extractStudentWithCourseResponseDto() {
+        return jsonConverter().fromJson(studentApiHolder.getResponse().getBody(), StudentWithCourseResponseDto.class);
     }
 }
