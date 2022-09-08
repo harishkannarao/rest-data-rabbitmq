@@ -1,6 +1,5 @@
 package com.harishkannarao.restdatarabbitmq.steps.holder;
 
-import com.harishkannarao.restdatarabbitmq.dto.StudentWithCourseResponseDto;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -9,5 +8,4 @@ import org.springframework.http.ResponseEntity;
 @NoArgsConstructor
 public class StudentApiHolder {
     private ResponseEntity<String> response;
-    private StudentWithCourseResponseDto entity;
 }
