@@ -7,5 +7,5 @@ import org.springframework.http.ResponseEntity;
 @Data
 @NoArgsConstructor
 public class StudentApiHolder {
-    private ResponseEntity<String> response;
+    private ResponseEntity<String> getByIdResponse;
 }

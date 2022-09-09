@@ -8,11 +8,11 @@ Feature: student-api
     And a random student known as "some_student_2"
     And student "some_student_1" is registered with course "some_course_1"
     And student "some_student_2" is registered with course "some_course_2"
-    When student-api-get-by-id is performed with student "some_student_1"
-    Then student-api-get-by-id returns a success response
-    And student-api-get-by-id has details of student "some_student_1"
-    And student-api-get-by-id has names of courses "some_course_1"
+    When I perform student-api-get-by-id with ID of student "some_student_1"
+    Then I get a success response from student-api-get-by-id
+    And I see the details of student "some_student_1" from student-api-get-by-id
+    And I see the names of courses "some_course_1" from student-api-get-by-id
 
   Scenario: student-api-get-by-id returns 404 on non-existent id
-    When student-api-get-by-id is performed with a random id
-    Then student-api-get-by-id returns a not_found response
+    When I perform student-api-get-by-id with a random id
+    Then I get a not_found response from student-api-get-by-id

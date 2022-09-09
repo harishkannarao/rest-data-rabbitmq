@@ -24,31 +24,31 @@ public class StudentApiSteps extends AbstractBaseSteps {
         this.studentApiHolder = studentApiHolder;
     }
 
-    @When("student-api-get-by-id is performed with student {string}")
-    public void studentApiGetByIdIsPerformedWithStudent(String canonicalStudentId) {
+    @When("I perform student-api-get-by-id with ID of student {string}")
+    public void iPerformStudentApiGetByIdWithIDOfStudent(String canonicalStudentId) {
         Student student = dataFixturesHolder.getStudents().get(canonicalStudentId);
         ResponseEntity<String> response = testRestTemplate().getForEntity(applicationUrl() + "/student/{id}", String.class, student.getId());
-        studentApiHolder.setResponse(response);
+        studentApiHolder.setGetByIdResponse(response);
     }
 
-    @When("student-api-get-by-id is performed with a random id")
-    public void studentApiGetByIdIsPerformedWithARandomId() {
+    @When("I perform student-api-get-by-id with a random id")
+    public void iPerformStudentApiGetByIdWithARandomId() {
         ResponseEntity<String> response = testRestTemplate().getForEntity(applicationUrl() + "/student/{id}", String.class, UUID.randomUUID());
-        studentApiHolder.setResponse(response);
+        studentApiHolder.setGetByIdResponse(response);
     }
 
-    @Then("student-api-get-by-id returns a not_found response")
-    public void studentApiGetByIdReturnsANot_foundResponse() {
-        assertThat(studentApiHolder.getResponse().getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    @Then("I get a not_found response from student-api-get-by-id")
+    public void iGetANot_foundResponseFromStudentApiGetById() {
+        assertThat(studentApiHolder.getGetByIdResponse().getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
-    @Then("student-api-get-by-id returns a success response")
-    public void studentApiGetByIdReturnsASuccessResponse() {
-        assertThat(studentApiHolder.getResponse().getStatusCode()).isEqualTo(HttpStatus.OK);
+    @Then("I get a success response from student-api-get-by-id")
+    public void iGetASuccessResponseFromStudentApiGetById() {
+        assertThat(studentApiHolder.getGetByIdResponse().getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
-    @And("student-api-get-by-id has details of student {string}")
-    public void studentApiGetByIdHasDetailsOfStudent(String canonicalStudentId) {
+    @And("I see the details of student {string} from student-api-get-by-id")
+    public void iSeeTheDetailsOfStudentFromStudentApiGetById(String canonicalStudentId) {
         Student expectedStudent = dataFixturesHolder.getStudents().get(canonicalStudentId);
         StudentWithCourseResponseDto result = extractStudentWithCourseResponseDto();
         assertThat(result.getId()).isEqualTo(expectedStudent.getId());
@@ -56,8 +56,8 @@ public class StudentApiSteps extends AbstractBaseSteps {
         assertThat(result.getEmail()).isEqualTo(expectedStudent.getEmail());
     }
 
-    @And("student-api-get-by-id has names of courses {string}")
-    public void studentApiGetByIdHasNamesOfCourses(String canonicalCourseIds) {
+    @And("I see the names of courses {string} from student-api-get-by-id")
+    public void iSeeTheNamesOfCoursesFromStudentApiGetById(String canonicalCourseIds) {
         String[] expectedCourseNames = Arrays.stream(canonicalCourseIds.split(","))
                 .map(s -> dataFixturesHolder.getCourses().get(s).getName())
                 .toArray(String[]::new);
@@ -66,6 +66,6 @@ public class StudentApiSteps extends AbstractBaseSteps {
     }
 
     private StudentWithCourseResponseDto extractStudentWithCourseResponseDto() {
-        return jsonConverter().fromJson(studentApiHolder.getResponse().getBody(), StudentWithCourseResponseDto.class);
+        return jsonConverter().fromJson(studentApiHolder.getGetByIdResponse().getBody(), StudentWithCourseResponseDto.class);
     }
 }
