@@ -1,11 +1,11 @@
-package com.harishkannarao.restdatarabbitmq.steps;
+package com.harishkannarao.restdatarabbitmq.steps.hook;
 
 import com.harishkannarao.restdatarabbitmq.runner.PostgresTestRunner;
 import com.harishkannarao.restdatarabbitmq.runner.RabbitMqTestRunner;
 import com.harishkannarao.restdatarabbitmq.runner.SpringBootTestRunner;
 import io.cucumber.java.Before;
 
-import static com.harishkannarao.restdatarabbitmq.integration.AbstractBaseIT.createIntegrationTestProperties;
+import static com.harishkannarao.restdatarabbitmq.runner.SpringBootIntegrationProperties.createIntegrationTestProperties;
 
 public class Hooks {
     @Before
