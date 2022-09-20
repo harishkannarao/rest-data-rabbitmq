@@ -1,6 +1,7 @@
 package com.harishkannarao.restdatarabbitmq.entity;
 
 import lombok.*;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -19,9 +20,11 @@ import java.util.UUID;
 public class StudentCourse {
     @Id
     @NonNull
+    @Type(type = "uuid-char")
     private UUID studentId;
     @Id
     @NonNull
+    @Type(type = "uuid-char")
     private UUID courseId;
 
     @Data

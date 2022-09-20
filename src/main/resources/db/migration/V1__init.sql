@@ -1,16 +1,16 @@
 CREATE TABLE IF NOT EXISTS course
      (
-            id         UUID NOT NULL,
+            id         VARCHAR(36) NOT NULL,
             NAME       VARCHAR(255),
-            rate       INT2 NOT NULL,
-            workload   INT4 NOT NULL,
-            teacher_id UUID,
+            rate       SMALLINT NOT NULL,
+            workload   INT NOT NULL,
+            teacher_id VARCHAR(36),
             PRIMARY KEY (id)
      );
 
 CREATE TABLE IF NOT EXISTS teacher
      (
-            id         UUID NOT NULL,
+            id         VARCHAR(36) NOT NULL,
             email      VARCHAR(255),
             NAME       VARCHAR(255),
             pictureurl VARCHAR(255),
@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS teacher
 
 CREATE TABLE IF NOT EXISTS student
     (
-            id         UUID NOT NULL,
+            id         VARCHAR(36) NOT NULL,
             email      VARCHAR(255),
             name       VARCHAR(255),
             PRIMARY KEY (id)
@@ -30,8 +30,8 @@ ALTER TABLE course
 
 CREATE TABLE IF NOT EXISTS student_course
     (
-            student_id  UUID NOT NULL,
-            course_id   UUID NOT NULL,
+            student_id  VARCHAR(36) NOT NULL,
+            course_id   VARCHAR(36) NOT NULL,
             PRIMARY KEY (student_id, course_id)
     );
 

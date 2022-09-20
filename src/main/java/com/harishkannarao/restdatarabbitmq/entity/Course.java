@@ -1,6 +1,7 @@
 package com.harishkannarao.restdatarabbitmq.entity;
 
 import lombok.*;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -15,12 +16,14 @@ import java.util.UUID;
 @Table(name = "course")
 public class Course {
     @Id
+    @Type(type = "uuid-char")
     @NonNull
     private UUID id;
     @NonNull
     private String name;
     private int workload;
     private short rate;
+    @Type(type = "uuid-char")
     @NonNull
     private UUID teacherId;
 }
