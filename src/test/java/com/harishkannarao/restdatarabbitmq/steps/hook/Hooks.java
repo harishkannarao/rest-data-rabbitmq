@@ -1,5 +1,6 @@
 package com.harishkannarao.restdatarabbitmq.steps.hook;
 
+import com.harishkannarao.restdatarabbitmq.runner.MySqlTestRunner;
 import com.harishkannarao.restdatarabbitmq.runner.PostgresTestRunner;
 import com.harishkannarao.restdatarabbitmq.runner.RabbitMqTestRunner;
 import com.harishkannarao.restdatarabbitmq.runner.SpringBootTestRunner;
@@ -12,6 +13,9 @@ public class Hooks {
     public void globalSetup() {
         if (!PostgresTestRunner.isRunning()) {
             PostgresTestRunner.start();
+        }
+        if (!MySqlTestRunner.isRunning()) {
+            MySqlTestRunner.start();
         }
         if (!RabbitMqTestRunner.isRunning()) {
             RabbitMqTestRunner.start();
