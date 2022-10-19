@@ -145,6 +145,7 @@
 					<artifactId>maven-failsafe-plugin</artifactId>
 					<version>3.0.0-M6</version>
 					<configuration>
+						<reportFormat>plain</reportFormat>
 						<properties>
 							<configurationParameters>
 								cucumber.junit-platform.naming-strategy=long
@@ -157,6 +158,7 @@
 					<artifactId>maven-surefire-plugin</artifactId>
 					<version>3.0.0-M6</version>
 					<configuration>
+						<reportFormat>plain</reportFormat>
 						<properties>
 							<configurationParameters>
 								cucumber.junit-platform.naming-strategy=long
