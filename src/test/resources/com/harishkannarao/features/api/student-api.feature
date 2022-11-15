@@ -13,6 +13,6 @@ Feature: student-api
     And I see the details of student "some_student_1" from student-api-get-by-id
     And I see the names of courses "some_course_1" from student-api-get-by-id
 
-  Scenario: student-api-get-by-id returns 404 on non-existent id
+  Scenario: student-api-get-by-id returns 400 on non-existent id
     When I perform student-api-get-by-id with a random id
-    Then I get a not_found response from student-api-get-by-id
+    Then I get a bad_request response from student-api-get-by-id

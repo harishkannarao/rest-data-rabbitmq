@@ -42,6 +42,11 @@ public class StudentApiSteps extends AbstractBaseSteps {
         assertThat(studentApiHolder.getGetByIdResponse().getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
+    @Then("I get a bad_request response from student-api-get-by-id")
+    public void iGetABadRequestResponseFromStudentApiGetById() {
+        assertThat(studentApiHolder.getGetByIdResponse().getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
     @Then("I get a success response from student-api-get-by-id")
     public void iGetASuccessResponseFromStudentApiGetById() {
         assertThat(studentApiHolder.getGetByIdResponse().getStatusCode()).isEqualTo(HttpStatus.OK);

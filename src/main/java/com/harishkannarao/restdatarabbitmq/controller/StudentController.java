@@ -7,6 +7,7 @@ import com.harishkannarao.restdatarabbitmq.dto.StudentWithCourseResponseDto;
 import com.harishkannarao.restdatarabbitmq.entity.Course;
 import com.harishkannarao.restdatarabbitmq.entity.StudentCourse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +21,7 @@ import java.util.stream.StreamSupport;
 
 @RestController
 @RequestMapping(value = "student", produces = {MediaType.APPLICATION_JSON_VALUE})
+@ConditionalOnProperty(value = "feature.api.student.enabled", havingValue = "true", matchIfMissing = true)
 public class StudentController {
 
     private final StudentDAO studentDAO;
@@ -52,6 +54,6 @@ public class StudentController {
                             .build();
                 })
                 .map(studentWithCourseResponseDto -> ResponseEntity.ok().body(studentWithCourseResponseDto))
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.badRequest().build());
     }
 }
