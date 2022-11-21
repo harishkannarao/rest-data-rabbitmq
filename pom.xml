@@ -146,6 +146,9 @@
 					<version>3.0.0-M6</version>
 					<configuration>
 						<reportFormat>plain</reportFormat>
+						<environmentVariables>
+							<TESTCONTAINERS_RYUK_DISABLED>true</TESTCONTAINERS_RYUK_DISABLED>
+						</environmentVariables>
 						<properties>
 							<configurationParameters>
 								cucumber.junit-platform.naming-strategy=long
@@ -159,6 +162,9 @@
 					<version>3.0.0-M6</version>
 					<configuration>
 						<reportFormat>plain</reportFormat>
+						<environmentVariables>
+							<TESTCONTAINERS_RYUK_DISABLED>true</TESTCONTAINERS_RYUK_DISABLED>
+						</environmentVariables>
 						<properties>
 							<configurationParameters>
 								cucumber.junit-platform.naming-strategy=long
