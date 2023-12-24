@@ -17,6 +17,10 @@ This project demonstrates the REST endpoints backed by Spring Data CRUD reposito
 
     mvn spring-boot:run
 
+### Run application with MySql and RabbitMq
+
+    mvn test-compile exec:java@run-local
+
 ### Run only unit tests
 
     mvn clean install -DskipITs
