@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.StreamSupport;
 
 @RestController
 @RequestMapping(value = "student", produces = {MediaType.APPLICATION_JSON_VALUE})
@@ -43,7 +42,7 @@ public class StudentController {
                             .stream()
                             .map(StudentCourse::getCourseId)
                             .toList();
-                    List<String> courseNames = StreamSupport.stream(courseDAO.findAllById(courseIds).spliterator(), false)
+                    List<String> courseNames = courseDAO.findAllById(courseIds).stream()
                             .map(Course::getName)
                             .toList();
                     return StudentWithCourseResponseDto.builder()
