@@ -1,11 +1,16 @@
 package com.harishkannarao.restdatarabbitmq.runner;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 
 import java.util.Properties;
 
 public class ApplicationLocalRunner {
     public static void main(String[] args) {
+        final Logger logger
+                = LoggerFactory.getLogger(ApplicationLocalRunner.class);
+
         if (!MySqlTestRunner.isRunning()) {
             MySqlTestRunner.start();
         }
@@ -32,12 +37,12 @@ public class ApplicationLocalRunner {
 
         SpringBootTestRunner.start(properties);
 
-        System.out.println("Application Started");
+        logger.info("Application Started");
 
         RabbitAdmin rabbitAdmin = SpringBootTestRunner.getBean(RabbitAdmin.class);
         rabbitAdmin.purgeQueue("test-queue-1", false);
         rabbitAdmin.purgeQueue("test-queue-2", false);
 
-        System.out.println("Purged Queues");
+        logger.info("Purged Queues");
     }
 }
