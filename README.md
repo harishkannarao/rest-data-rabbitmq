@@ -5,7 +5,7 @@ This project demonstrates the REST endpoints backed by Spring Data CRUD reposito
 
 ### Required Tools
 
-* Java 17
+* Java 21
 * Maven 3.5.3
 * Docker Engine Latest Version
 
