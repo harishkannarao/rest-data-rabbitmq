@@ -1,12 +1,13 @@
 package com.harishkannarao.restdatarabbitmq.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
+import jakarta.persistence.Table;
 import lombok.*;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.VarcharJdbcType;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.Table;
 import java.io.Serializable;
 import java.util.UUID;
 
@@ -20,11 +21,11 @@ import java.util.UUID;
 public class StudentCourse {
     @Id
     @NonNull
-    @Type(type = "uuid-char")
+    @JdbcType(VarcharJdbcType.class)
     private UUID studentId;
     @Id
     @NonNull
-    @Type(type = "uuid-char")
+    @JdbcType(VarcharJdbcType.class)
     private UUID courseId;
 
     @Data
