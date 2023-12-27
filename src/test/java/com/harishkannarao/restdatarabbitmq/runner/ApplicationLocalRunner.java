@@ -22,6 +22,7 @@ public class ApplicationLocalRunner {
         final Properties properties = new Properties();
         properties.setProperty("server.port", "8080");
         properties.setProperty("spring.profiles.active", "int-test");
+        properties.setProperty("test.store-received-messages", "false");
 
         properties.setProperty("spring.datasource.url", MySqlTestRunner.getJdbcUrl());
         properties.setProperty("spring.datasource.username", MySqlTestRunner.getUsername());

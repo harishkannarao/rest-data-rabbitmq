@@ -7,6 +7,9 @@ messaging:
     outbound-routing-key: messageProcessor2
     outbound-queue: test-queue-2
 
+test:
+  store-received-messages: true
+
 spring:
   jpa:
     show-sql: true
