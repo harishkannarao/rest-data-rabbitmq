@@ -26,7 +26,7 @@ public class Hooks {
     @Before(order = 3)
     public void startMySql() {
         if (!MySqlTestRunner.isRunning()) {
-            MySqlTestRunner.start();
+            MySqlTestRunner.start(false);
         }
         properties.setProperty("spring.datasource.url", MySqlTestRunner.getJdbcUrl());
         properties.setProperty("spring.datasource.username", MySqlTestRunner.getUsername());
@@ -39,7 +39,7 @@ public class Hooks {
     @Before(order = 4)
     public void startRabbitMq() {
         if (!RabbitMqTestRunner.isRunning()) {
-            RabbitMqTestRunner.start();
+            RabbitMqTestRunner.start(false);
         }
         properties.setProperty("spring.rabbitmq.host", RabbitMqTestRunner.getHost());
         properties.setProperty("spring.rabbitmq.port", RabbitMqTestRunner.getPort().toString());

@@ -3,18 +3,25 @@ package com.harishkannarao.restdatarabbitmq.runner;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.DockerImageName;
 
+import java.util.List;
+
 public class RabbitMqTestRunner {
 
     private static final int PORT = 5672;
     private static final int MANAGEMENT_PORT = 15672;
-    private static final String USERNAME = "test-rabbitmq-user";
-    private static final String PASSWORD = "test-rabbitmq-password";
+    private static final String USERNAME = "guest";
+    private static final String PASSWORD = "guest";
     private static final GenericContainer CONTAINER = new GenericContainer(DockerImageName.parse("rabbitmq:3-management-alpine"))
             .withExposedPorts(PORT, MANAGEMENT_PORT)
             .withEnv("RABBITMQ_DEFAULT_USER", USERNAME)
             .withEnv("RABBITMQ_DEFAULT_PASS", PASSWORD);
 
-    public static void start() {
+    public static void start(boolean useFixedPorts) {
+        if (useFixedPorts) {
+            CONTAINER.setPortBindings(List.of(PORT + ":" + PORT, MANAGEMENT_PORT + ":" + MANAGEMENT_PORT));
+        } else {
+            CONTAINER.setPortBindings(List.of());
+        }
         CONTAINER.start();
     }
 

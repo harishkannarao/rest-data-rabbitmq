@@ -12,11 +12,11 @@ public class ApplicationLocalRunner {
                 = LoggerFactory.getLogger(ApplicationLocalRunner.class);
 
         if (!MySqlTestRunner.isRunning()) {
-            MySqlTestRunner.start();
+            MySqlTestRunner.start(true);
         }
 
         if (!RabbitMqTestRunner.isRunning()) {
-            RabbitMqTestRunner.start();
+            RabbitMqTestRunner.start(true);
         }
 
         final Properties properties = new Properties();
