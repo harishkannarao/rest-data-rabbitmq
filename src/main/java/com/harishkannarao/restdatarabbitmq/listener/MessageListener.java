@@ -33,7 +33,7 @@ public class MessageListener {
         this.outboundRoutingKey = outboundRoutingKey;
     }
 
-    @RabbitListener(queues = "${messaging.message-processor.inbound-queue}")
+    @RabbitListener(queues = "${messaging.message-processor.inbound-queue}", concurrency = "${messaging.message-processor.inbound-queue-concurrency}")
     public void handleMessage(final String message) {
         List<SampleMessage> sampleMessages = Arrays.asList(jsonConverter.fromJson(message, SampleMessage[].class));
         sampleMessages.forEach(sampleMessage -> {

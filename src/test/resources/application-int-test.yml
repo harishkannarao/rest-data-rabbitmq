@@ -3,9 +3,11 @@ messaging:
     inbound-topic-exchange: test-topic-exchange-1
     inbound-routing-key: messageProcessor1
     inbound-queue: test-queue-1
+    inbound-queue-concurrency: 100-110
     outbound-topic-exchange: test-topic-exchange-2
     outbound-routing-key: messageProcessor2
     outbound-queue: test-queue-2
+    outbound-queue-concurrency: 100-110
 
 test:
   store-received-messages: true

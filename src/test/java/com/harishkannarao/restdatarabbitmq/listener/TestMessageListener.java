@@ -31,7 +31,7 @@ public class TestMessageListener {
         this.jsonConverter = jsonConverter;
     }
 
-    @RabbitListener(queues = "${messaging.message-processor.outbound-queue}")
+    @RabbitListener(queues = "${messaging.message-processor.outbound-queue}", concurrency = "${messaging.message-processor.outbound-queue-concurrency}")
     public void handleMessage(final String message) {
         logger.info("Received message: " + message);
         if (storeReceivedMessages) {
