@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
@@ -41,7 +42,7 @@ public class TestMessageSenderController {
     }
 
     @GetMapping("{count}")
-    public ResponseEntity<Void> getById(@PathVariable("count") Integer count) {
+    public ResponseEntity<Map<String, Integer>> getById(@PathVariable("count") Integer count) {
         logger.info("Sending sample messages");
         IntStream.range(0, count)
                 .forEach(value -> {
@@ -53,6 +54,6 @@ public class TestMessageSenderController {
                     rabbitTemplate.convertAndSend(inboundExchange, inboundRoutingKey, message);
                 });
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(Map.of("count", count));
     }
 }
