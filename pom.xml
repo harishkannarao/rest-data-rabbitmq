@@ -103,14 +103,6 @@
 			<artifactId>junit-platform-suite</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.openrewrite.recipe</groupId>
-			<artifactId>rewrite-spring</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.openrewrite.recipe</groupId>
-			<artifactId>rewrite-migrate-java</artifactId>
-		</dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
@@ -139,19 +131,8 @@
 				<version>${cucumber.version}</version>
 				<scope>test</scope>
 			</dependency>
-			<dependency>
-				<groupId>org.openrewrite.recipe</groupId>
-				<artifactId>rewrite-spring</artifactId>
-				<version>${rewrite.spring.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.openrewrite.recipe</groupId>
-				<artifactId>rewrite-migrate-java</artifactId>
-				<version>${rewrite.java.version}</version>
-			</dependency>
 		</dependencies>
 	</dependencyManagement>
-
 	<build>
 		<pluginManagement>
 			<plugins>
@@ -209,10 +190,24 @@
 				<groupId>org.openrewrite.maven</groupId>
 				<artifactId>rewrite-maven-plugin</artifactId>
 				<configuration>
+					<failOnDryRunResults>true</failOnDryRunResults>
+					<failOnInvalidActiveRecipes>true</failOnInvalidActiveRecipes>
 					<activeRecipes>
 						<recipe>com.harishkannarao.example.recipe</recipe>
 					</activeRecipes>
 				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>org.openrewrite.recipe</groupId>
+						<artifactId>rewrite-spring</artifactId>
+						<version>${rewrite.spring.version}</version>
+					</dependency>
+					<dependency>
+						<groupId>org.openrewrite.recipe</groupId>
+						<artifactId>rewrite-migrate-java</artifactId>
+						<version>${rewrite.java.version}</version>
+					</dependency>
+				</dependencies>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
