@@ -3,3 +3,4 @@ name: com.harishkannarao.example.recipe
 recipeList:
   - org.openrewrite.java.migrate.UpgradeToJava21
   - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_2
+  - org.openrewrite.hibernate.TypeAnnotationParameter
