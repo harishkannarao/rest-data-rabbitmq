@@ -18,6 +18,7 @@
 		<testcontainers.version>1.19.3</testcontainers.version>
 		<cucumber.version>7.5.0</cucumber.version>
 		<rewrite.spring.version>5.1.7</rewrite.spring.version>
+		<rewrite.java.version>2.6.0</rewrite.java.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -106,6 +107,10 @@
 			<groupId>org.openrewrite.recipe</groupId>
 			<artifactId>rewrite-spring</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.openrewrite.recipe</groupId>
+			<artifactId>rewrite-migrate-java</artifactId>
+		</dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
@@ -138,6 +143,11 @@
 				<groupId>org.openrewrite.recipe</groupId>
 				<artifactId>rewrite-spring</artifactId>
 				<version>${rewrite.spring.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.openrewrite.recipe</groupId>
+				<artifactId>rewrite-migrate-java</artifactId>
+				<version>${rewrite.java.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
