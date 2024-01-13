@@ -17,6 +17,7 @@
 		<java.version>17</java.version>
 		<testcontainers.version>1.19.3</testcontainers.version>
 		<cucumber.version>7.5.0</cucumber.version>
+		<rewrite.spring.version>5.1.7</rewrite.spring.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -101,6 +102,10 @@
 			<artifactId>junit-platform-suite</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.openrewrite.recipe</groupId>
+			<artifactId>rewrite-spring</artifactId>
+		</dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
@@ -128,6 +133,11 @@
 				<artifactId>cucumber-picocontainer</artifactId>
 				<version>${cucumber.version}</version>
 				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.openrewrite.recipe</groupId>
+				<artifactId>rewrite-spring</artifactId>
+				<version>${rewrite.spring.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -190,7 +200,7 @@
 				<artifactId>rewrite-maven-plugin</artifactId>
 				<configuration>
 					<activeRecipes>
-						<recipe>org.openrewrite.java.OrderImports</recipe>
+						<recipe>com.harishkannarao.example.recipe</recipe>
 					</activeRecipes>
 				</configuration>
 			</plugin>

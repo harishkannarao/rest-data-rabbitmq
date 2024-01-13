@@ -1,0 +1,4 @@
+type: specs.openrewrite.org/v1beta/recipe
+name: com.harishkannarao.example.recipe
+recipeList:
+  - org.openrewrite.java.migrate.UpgradeToJava21
