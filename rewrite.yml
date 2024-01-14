@@ -9,3 +9,9 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.data.repository.PagingAndSortingRepository
       newFullyQualifiedTypeName: org.springframework.data.repository.ListCrudRepository
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.context.TestConfiguration
+      newFullyQualifiedTypeName: org.springframework.context.annotation.Configuration
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.context.TestComponent
+      newFullyQualifiedTypeName: org.springframework.stereotype.Component
