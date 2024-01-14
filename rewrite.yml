@@ -6,12 +6,6 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.hibernate.annotations.Type
       newFullyQualifiedTypeName: org.hibernate.annotations.JdbcType
-  - org.openrewrite.java.RemoveAnnotationAttribute:
-      annotationType: org.hibernate.annotations.JdbcType
-      attributeName: default
-  - org.openrewrite.java.AddOrUpdateAnnotationAttribute:
-      annotationType: org.hibernate.annotations.JdbcType
-      attributeValue: VarcharJdbcType.class
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.data.repository.PagingAndSortingRepository
       newFullyQualifiedTypeName: org.springframework.data.repository.ListCrudRepository
