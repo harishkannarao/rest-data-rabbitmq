@@ -46,3 +46,7 @@ This project demonstrates the REST endpoints backed by Spring Data CRUD reposito
     mvn versions:update-child-modules
 
     mvn versions:update-parent
+
+### Open rewrite command
+
+    mvn rewrite:run

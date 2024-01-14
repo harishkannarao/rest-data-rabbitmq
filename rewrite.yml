@@ -1,0 +1,17 @@
+type: specs.openrewrite.org/v1beta/recipe
+name: com.harishkannarao.example.recipe
+recipeList:
+  - org.openrewrite.java.migrate.UpgradeToJava21
+  - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_2
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.hibernate.annotations.Type
+      newFullyQualifiedTypeName: org.hibernate.annotations.JdbcType
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.data.repository.PagingAndSortingRepository
+      newFullyQualifiedTypeName: org.springframework.data.repository.ListCrudRepository
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.context.TestConfiguration
+      newFullyQualifiedTypeName: org.springframework.context.annotation.Configuration
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.context.TestComponent
+      newFullyQualifiedTypeName: org.springframework.stereotype.Component
