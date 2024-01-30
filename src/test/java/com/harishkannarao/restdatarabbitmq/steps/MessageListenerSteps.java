@@ -38,11 +38,16 @@ public class MessageListenerSteps extends AbstractBaseSteps {
 
     @When("I send sample message {string} to message-processor.inbound-topic-exchange with message-processor.inbound-routing-key")
     public void iSendSampleMessageToMessageProcessorInboundTopicExchangeWithMessageProcessorInboundRoutingKey(String canonicalName) {
-        List<SampleMessage> inputMessages = List.of(messageListenerHolder.getSampleMessages().get(canonicalName));
+        SampleMessage sampleMessage = messageListenerHolder.getSampleMessages().get(canonicalName);
+        List<SampleMessage> inputMessages = List.of(sampleMessage);
         String message = jsonConverter().toJson(inputMessages);
         String topicExchange = getProperty("messaging.message-processor.inbound-topic-exchange");
         String routingKey = getProperty("messaging.message-processor.inbound-routing-key");
-        rabbitTemplate().convertAndSend(topicExchange, routingKey, message);
+        rabbitTemplate().convertAndSend(topicExchange, routingKey, message, rawMessage -> {
+            rawMessage.getMessageProperties().getHeaders()
+                    .put("X-Correlation-ID", sampleMessage.getId());
+            return rawMessage;
+        });
     }
 
     @Then("I should see sample message {string} in TestMessageListener")

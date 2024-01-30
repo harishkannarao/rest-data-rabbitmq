@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -32,11 +33,11 @@ public class TestMessageListener {
     }
 
     @RabbitListener(queues = "${messaging.message-processor.outbound-queue}", concurrency = "${messaging.message-processor.outbound-queue-concurrency}")
-    public void handleMessage(final String message) {
+    public void handleMessage(@Header("X-Correlation-ID") UUID correlationId, final String message) {
         logger.info("Received message: " + message);
         if (storeReceivedMessages) {
             List<SampleMessage> sampleMessages = Arrays.asList(jsonConverter.fromJson(message, SampleMessage[].class));
-            sampleMessages.forEach(sampleMessage -> HOLDER.put(sampleMessage.getId(), sampleMessage));
+            sampleMessages.forEach(sampleMessage -> HOLDER.put(correlationId, sampleMessage));
         } else {
             logger.info("Not storing messages as test.store-received-messages is set to false");
         }
