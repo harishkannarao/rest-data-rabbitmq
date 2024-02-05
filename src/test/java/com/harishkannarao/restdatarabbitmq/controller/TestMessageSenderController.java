@@ -51,7 +51,11 @@ public class TestMessageSenderController {
                             .value("Hello World " + value)
                             .build();
                     String message = jsonConverter.toJson(List.of(sampleMessage));
-                    rabbitTemplate.convertAndSend(inboundExchange, inboundRoutingKey, message);
+                    rabbitTemplate.convertAndSend(inboundExchange, inboundRoutingKey, message, rawMessage -> {
+                        rawMessage.getMessageProperties().getHeaders()
+                                .put("X-Correlation-ID", sampleMessage.getId());
+                        return rawMessage;
+                    });
                 });
 
         return ResponseEntity.ok(Map.of("count", count));

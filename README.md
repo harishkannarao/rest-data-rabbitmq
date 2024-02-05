@@ -21,6 +21,10 @@ This project demonstrates the REST endpoints backed by Spring Data CRUD reposito
 
     mvn test-compile exec:java@run-local
 
+Send sample messages
+
+    curl -s 'http://localhost:8080/send-messages/2'
+
 ### Run only unit tests
 
     mvn clean install -DskipITs
