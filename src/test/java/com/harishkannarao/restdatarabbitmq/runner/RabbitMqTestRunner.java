@@ -11,7 +11,7 @@ public class RabbitMqTestRunner {
     private static final int MANAGEMENT_PORT = 15672;
     private static final String USERNAME = "guest";
     private static final String PASSWORD = "guest";
-    private static final GenericContainer CONTAINER = new GenericContainer(DockerImageName.parse("rabbitmq:3-management-alpine"))
+    private static final GenericContainer<?> CONTAINER = new GenericContainer<>(DockerImageName.parse("rabbitmq:3-management-alpine"))
             .withExposedPorts(PORT, MANAGEMENT_PORT)
             .withEnv("RABBITMQ_DEFAULT_USER", USERNAME)
             .withEnv("RABBITMQ_DEFAULT_PASS", PASSWORD);
@@ -31,6 +31,7 @@ public class RabbitMqTestRunner {
 
     public static void stop() {
         CONTAINER.stop();
+        CONTAINER.close();
     }
 
     public static String getHost() {

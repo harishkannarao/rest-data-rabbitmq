@@ -11,7 +11,7 @@ public class MySqlTestRunner {
     private static final String DATABASE = "test-database";
     private static final String USERNAME = "test-user";
     private static final String PASSWORD = "test-password";
-    private static final GenericContainer CONTAINER = new GenericContainer(DockerImageName.parse("mysql:8-debian"))
+    private static final GenericContainer<?> CONTAINER = new GenericContainer<>(DockerImageName.parse("mysql:8-debian"))
             .withExposedPorts(PORT)
             .withEnv("MYSQL_ROOT_PASSWORD", "test-root")
             .withEnv("MYSQL_DATABASE", DATABASE)
@@ -33,6 +33,7 @@ public class MySqlTestRunner {
 
     public static void stop() {
         CONTAINER.stop();
+        CONTAINER.close();
     }
 
     public static String getHost() {
