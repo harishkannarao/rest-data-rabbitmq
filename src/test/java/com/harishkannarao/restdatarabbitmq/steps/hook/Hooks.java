@@ -6,7 +6,10 @@ import com.harishkannarao.restdatarabbitmq.runner.SpringBootTestRunner;
 import io.cucumber.java.Before;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 
+import java.util.List;
 import java.util.Properties;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public class Hooks {
 
@@ -24,23 +27,34 @@ public class Hooks {
     }
 
     @Before(order = 3)
-    public void startMySql() {
-        if (!MySqlTestRunner.isRunning()) {
-            MySqlTestRunner.start(false);
-        }
+    public void startServices() {
+        Supplier<Boolean> mySqlStarter = () -> {
+            if (!MySqlTestRunner.isRunning()) {
+                MySqlTestRunner.start(false);
+            }
+            return true;
+        };
+        Supplier<Boolean> rabbitMqStarter = () -> {
+            if (!RabbitMqTestRunner.isRunning()) {
+                RabbitMqTestRunner.start(false);
+            }
+            return true;
+        };
+        Stream.of(mySqlStarter, rabbitMqStarter)
+                .parallel()
+                .map(Supplier::get)
+                .forEach(aBoolean -> {});
+    }
+
+    @Before(order = 4)
+    public void setProperties() {
         properties.setProperty("spring.datasource.url", MySqlTestRunner.getJdbcUrl());
         properties.setProperty("spring.datasource.username", MySqlTestRunner.getUsername());
         properties.setProperty("spring.datasource.password", MySqlTestRunner.getPassword());
         properties.setProperty("spring.flyway.url", MySqlTestRunner.getJdbcUrl());
         properties.setProperty("spring.flyway.user", MySqlTestRunner.getUsername());
         properties.setProperty("spring.flyway.password", MySqlTestRunner.getPassword());
-    }
 
-    @Before(order = 4)
-    public void startRabbitMq() {
-        if (!RabbitMqTestRunner.isRunning()) {
-            RabbitMqTestRunner.start(false);
-        }
         properties.setProperty("spring.rabbitmq.host", RabbitMqTestRunner.getHost());
         properties.setProperty("spring.rabbitmq.port", RabbitMqTestRunner.getPort().toString());
         properties.setProperty("spring.rabbitmq.username", RabbitMqTestRunner.getUsername());
