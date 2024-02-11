@@ -75,7 +75,12 @@ public class MessageListener {
                     Map.entry(X_COUNT, count),
                     Map.entry(X_MESSAGE_TIMESTAMP, resolvedTimestamp)
             );
-            rabbitMessagingTemplate.convertAndSend(inboundRetryTopicExchange, inboundRetryRoutingKey, message, retryHeaders);
+            rabbitMessagingTemplate.convertAndSend(
+                    inboundRetryTopicExchange,
+                    inboundRetryRoutingKey,
+                    message,
+                    retryHeaders
+            );
         } finally {
             MDC.clear();
         }
