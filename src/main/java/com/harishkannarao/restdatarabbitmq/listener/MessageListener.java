@@ -4,6 +4,7 @@ import com.harishkannarao.restdatarabbitmq.entity.SampleMessage;
 import com.harishkannarao.restdatarabbitmq.json.JsonConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,15 +39,20 @@ public class MessageListener {
 
     @RabbitListener(queues = "${messaging.message-processor.inbound-queue}", concurrency = "${messaging.message-processor.inbound-queue-concurrency}")
     public void handleMessage(@Header(X_CORRELATION_ID) UUID correlationId, final String message) {
-        List<SampleMessage> sampleMessages = Arrays.asList(jsonConverter.fromJson(message, SampleMessage[].class));
-        sampleMessages.forEach(sampleMessage -> {
-            LOGGER.info("Received Message: " + correlationId + " " + sampleMessage.toString());
-            String outboundMessage = jsonConverter.toJson(List.of(sampleMessage));
-            rabbitTemplate.convertAndSend(outboundTopicExchange, outboundRoutingKey, outboundMessage, rawMessage -> {
-                rawMessage.getMessageProperties().getHeaders()
-                        .put(X_CORRELATION_ID, sampleMessage.getId());
-                return rawMessage;
+        try {
+            MDC.put(X_CORRELATION_ID, correlationId.toString());
+            List<SampleMessage> sampleMessages = Arrays.asList(jsonConverter.fromJson(message, SampleMessage[].class));
+            sampleMessages.forEach(sampleMessage -> {
+                LOGGER.info("Received Message: " + correlationId + " " + sampleMessage.toString());
+                String outboundMessage = jsonConverter.toJson(List.of(sampleMessage));
+                rabbitTemplate.convertAndSend(outboundTopicExchange, outboundRoutingKey, outboundMessage, rawMessage -> {
+                    rawMessage.getMessageProperties().getHeaders()
+                            .put(X_CORRELATION_ID, sampleMessage.getId());
+                    return rawMessage;
+                });
             });
-        });
+        } finally {
+            MDC.clear();
+        }
     }
 }
