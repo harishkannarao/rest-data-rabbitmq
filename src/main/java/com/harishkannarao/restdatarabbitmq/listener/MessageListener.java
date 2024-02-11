@@ -38,7 +38,9 @@ public class MessageListener {
         this.outboundRoutingKey = outboundRoutingKey;
     }
 
-    @RabbitListener(queues = "${messaging.message-processor.inbound-queue}", concurrency = "${messaging.message-processor.inbound-queue-concurrency}")
+    @RabbitListener(
+            queues = "${messaging.message-processor.inbound-queue}",
+            concurrency = "${messaging.message-processor.inbound-queue-concurrency}")
     public void handleMessage(@Header(X_CORRELATION_ID) UUID correlationId, final String message) {
         try {
             MDC.put(X_CORRELATION_ID, correlationId.toString());
@@ -49,6 +51,17 @@ public class MessageListener {
                 Map<String, Object> headers = Map.of(X_CORRELATION_ID, sampleMessage.getId());
                 rabbitMessagingTemplate.convertAndSend(outboundTopicExchange, outboundRoutingKey, outboundMessage, headers);
             });
+        } finally {
+            MDC.clear();
+        }
+    }
+
+    @RabbitListener(
+            queues = "${messaging.message-processor.inbound-retry-queue}",
+            concurrency = "${messaging.message-processor.inbound-retry-queue-concurrency}")
+    public void handleRetry(@Header(X_CORRELATION_ID) UUID correlationId, final String message) {
+        try {
+            MDC.put(X_CORRELATION_ID, correlationId.toString());
         } finally {
             MDC.clear();
         }
