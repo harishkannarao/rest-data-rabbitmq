@@ -48,7 +48,7 @@ public class TestMessageSenderController {
                 .forEach(value -> {
                     SampleMessage sampleMessage = SampleMessage.builder()
                             .id(UUID.randomUUID())
-                            .value("Hello World " + value)
+                            .value("$Hello World " + value)
                             .build();
                     String message = jsonConverter.toJson(List.of(sampleMessage));
                     Map<String, Object> headers = Map.of("X-Correlation-ID", sampleMessage.getId());
