@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.core.RabbitMessagingTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Component
@@ -22,17 +24,17 @@ public class MessageListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageListener.class);
     private static final String X_CORRELATION_ID = "X-Correlation-ID";
     private final JsonConverter jsonConverter;
-    private final RabbitTemplate rabbitTemplate;
+    private final RabbitMessagingTemplate rabbitMessagingTemplate;
     private final String outboundTopicExchange;
     private final String outboundRoutingKey;
 
     @Autowired
     public MessageListener(JsonConverter jsonConverter,
-                           RabbitTemplate rabbitTemplate,
+                           RabbitMessagingTemplate rabbitMessagingTemplate,
                            @Value("${messaging.message-processor.outbound-topic-exchange}") String outboundTopicExchange,
                            @Value("${messaging.message-processor.outbound-routing-key}") String outboundRoutingKey) {
         this.jsonConverter = jsonConverter;
-        this.rabbitTemplate = rabbitTemplate;
+        this.rabbitMessagingTemplate = rabbitMessagingTemplate;
         this.outboundTopicExchange = outboundTopicExchange;
         this.outboundRoutingKey = outboundRoutingKey;
     }
@@ -45,11 +47,8 @@ public class MessageListener {
             sampleMessages.forEach(sampleMessage -> {
                 LOGGER.info("Received Message: " + correlationId + " " + sampleMessage.toString());
                 String outboundMessage = jsonConverter.toJson(List.of(sampleMessage));
-                rabbitTemplate.convertAndSend(outboundTopicExchange, outboundRoutingKey, outboundMessage, rawMessage -> {
-                    rawMessage.getMessageProperties().getHeaders()
-                            .put(X_CORRELATION_ID, sampleMessage.getId());
-                    return rawMessage;
-                });
+                Map<String, Object> headers = Map.of(X_CORRELATION_ID, sampleMessage.getId());
+                rabbitMessagingTemplate.convertAndSend(outboundTopicExchange, outboundRoutingKey, outboundMessage, headers);
             });
         } finally {
             MDC.clear();
