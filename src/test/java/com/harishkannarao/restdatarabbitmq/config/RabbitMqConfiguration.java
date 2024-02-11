@@ -29,6 +29,25 @@ public class RabbitMqConfiguration {
         return BindingBuilder.bind(queue).to(exchange).with(messageProcessorInboundRoutingKey);
     }
 
+    @Bean(name = "messageProcessorInboundRetryQueue")
+    Queue messageProcessorInboundRetryQueue(
+            @Value("${messaging.message-processor.inbound-retry-queue}") String messageProcessorInboundRetryQueue) {
+        return new Queue(messageProcessorInboundRetryQueue, false);
+    }
+
+    @Bean(name = "messageProcessorInboundRetryTopicExchange")
+    TopicExchange messageProcessorInboundRetryTopicExchange(
+            @Value("${messaging.message-processor.inbound-retry-topic-exchange}") String messageProcessorInboundRetryTopicExchange) {
+        return new TopicExchange(messageProcessorInboundRetryTopicExchange);
+    }
+
+    @Bean
+    Binding inboundRetryBinding(@Qualifier("messageProcessorInboundRetryQueue") Queue queue,
+                           @Qualifier("messageProcessorInboundRetryTopicExchange") TopicExchange exchange,
+                           @Value("${messaging.message-processor.inbound-retry-routing-key}") String messageProcessorInboundRetryRoutingKey) {
+        return BindingBuilder.bind(queue).to(exchange).with(messageProcessorInboundRetryRoutingKey);
+    }
+
     @Bean(name = "messageProcessorOutboundQueue")
     Queue messageProcessorOutboundQueue(@Value("${messaging.message-processor.outbound-queue}") String messageProcessorOutboundQueue) {
         return new Queue(messageProcessorOutboundQueue, false);
