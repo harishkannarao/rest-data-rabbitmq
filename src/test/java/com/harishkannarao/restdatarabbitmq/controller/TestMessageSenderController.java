@@ -4,7 +4,7 @@ import com.harishkannarao.restdatarabbitmq.entity.SampleMessage;
 import com.harishkannarao.restdatarabbitmq.json.JsonConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.core.RabbitMessagingTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -26,18 +26,18 @@ public class TestMessageSenderController {
 
     private final String inboundExchange;
     private final String inboundRoutingKey;
-    private final RabbitTemplate rabbitTemplate;
+    private final RabbitMessagingTemplate rabbitMessagingTemplate;
     private final JsonConverter jsonConverter;
 
     @Autowired
     public TestMessageSenderController(
             @Value("${messaging.message-processor.inbound-topic-exchange}") String inboundExchange,
             @Value("${messaging.message-processor.inbound-routing-key}") String inboundRoutingKey,
-            RabbitTemplate rabbitTemplate,
+            RabbitMessagingTemplate rabbitMessagingTemplate,
             JsonConverter jsonConverter) {
         this.inboundExchange = inboundExchange;
         this.inboundRoutingKey = inboundRoutingKey;
-        this.rabbitTemplate = rabbitTemplate;
+        this.rabbitMessagingTemplate = rabbitMessagingTemplate;
         this.jsonConverter = jsonConverter;
     }
 
@@ -51,11 +51,8 @@ public class TestMessageSenderController {
                             .value("Hello World " + value)
                             .build();
                     String message = jsonConverter.toJson(List.of(sampleMessage));
-                    rabbitTemplate.convertAndSend(inboundExchange, inboundRoutingKey, message, rawMessage -> {
-                        rawMessage.getMessageProperties().getHeaders()
-                                .put("X-Correlation-ID", sampleMessage.getId());
-                        return rawMessage;
-                    });
+                    Map<String, Object> headers = Map.of("X-Correlation-ID", sampleMessage.getId());
+                    rabbitMessagingTemplate.convertAndSend(inboundExchange, inboundRoutingKey, message, headers);
                 });
 
         return ResponseEntity.ok(Map.of("count", count));

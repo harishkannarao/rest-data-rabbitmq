@@ -9,6 +9,7 @@ import io.cucumber.java.en.When;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,11 +44,8 @@ public class MessageListenerSteps extends AbstractBaseSteps {
         String message = jsonConverter().toJson(inputMessages);
         String topicExchange = getProperty("messaging.message-processor.inbound-topic-exchange");
         String routingKey = getProperty("messaging.message-processor.inbound-routing-key");
-        rabbitTemplate().convertAndSend(topicExchange, routingKey, message, rawMessage -> {
-            rawMessage.getMessageProperties().getHeaders()
-                    .put("X-Correlation-ID", sampleMessage.getId());
-            return rawMessage;
-        });
+        Map<String, Object> headers = Map.of("X-Correlation-ID", sampleMessage.getId());
+        rabbitMessagingTemplate().convertAndSend(topicExchange, routingKey, message, headers);
     }
 
     @Then("I should see sample message {string} in TestMessageListener")

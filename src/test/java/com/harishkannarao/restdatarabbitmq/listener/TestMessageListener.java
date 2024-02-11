@@ -4,6 +4,7 @@ import com.harishkannarao.restdatarabbitmq.entity.SampleMessage;
 import com.harishkannarao.restdatarabbitmq.json.JsonConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,12 +35,17 @@ public class TestMessageListener {
 
     @RabbitListener(queues = "${messaging.message-processor.outbound-queue}", concurrency = "${messaging.message-processor.outbound-queue-concurrency}")
     public void handleMessage(@Header("X-Correlation-ID") UUID correlationId, final String message) {
-        logger.info("Received message: " + message);
-        if (storeReceivedMessages) {
-            List<SampleMessage> sampleMessages = Arrays.asList(jsonConverter.fromJson(message, SampleMessage[].class));
-            sampleMessages.forEach(sampleMessage -> HOLDER.put(correlationId, sampleMessage));
-        } else {
-            logger.info("Not storing messages as test.store-received-messages is set to false");
+        try {
+            MDC.put("X-Correlation-ID", correlationId.toString());
+            logger.info("Received message: " + message);
+            if (storeReceivedMessages) {
+                List<SampleMessage> sampleMessages = Arrays.asList(jsonConverter.fromJson(message, SampleMessage[].class));
+                sampleMessages.forEach(sampleMessage -> HOLDER.put(correlationId, sampleMessage));
+            } else {
+                logger.info("Not storing messages as test.store-received-messages is set to false");
+            }
+        } finally {
+            MDC.clear();
         }
     }
 }

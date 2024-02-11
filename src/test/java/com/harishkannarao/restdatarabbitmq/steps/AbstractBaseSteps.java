@@ -2,7 +2,7 @@ package com.harishkannarao.restdatarabbitmq.steps;
 
 import com.harishkannarao.restdatarabbitmq.json.JsonConverter;
 import com.harishkannarao.restdatarabbitmq.runner.SpringBootTestRunner;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.core.RabbitMessagingTemplate;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.env.Environment;
 
@@ -16,8 +16,8 @@ public abstract class AbstractBaseSteps {
         return getBean(Environment.class).getProperty(key);
     }
 
-    protected RabbitTemplate rabbitTemplate() {
-        return getBean(RabbitTemplate.class);
+    protected RabbitMessagingTemplate rabbitMessagingTemplate() {
+        return getBean(RabbitMessagingTemplate.class);
     }
 
     protected String applicationUrl() {
