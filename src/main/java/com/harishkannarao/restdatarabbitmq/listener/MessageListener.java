@@ -5,6 +5,8 @@ import com.harishkannarao.restdatarabbitmq.json.JsonConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitMessagingTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -14,6 +16,7 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -134,15 +137,14 @@ public class MessageListener {
                 Map.entry(X_MESSAGE_NEXT_RETRY, msgNextRetry),
                 Map.entry(X_MESSAGE_EXPIRY, msgExpiry)
         );
-        rabbitTemplate.convertAndSend(
+        MessageProperties messageProperties = new MessageProperties();
+        messageProperties.setExpiration("500");
+        messageProperties.setHeaders(requeueHeaders);
+        Message msg = new Message(message.getBytes(StandardCharsets.UTF_8), messageProperties);
+        rabbitTemplate.send(
                 inboundRetryTopicExchange,
                 inboundRetryRoutingKey,
-                message,
-                rawMessage -> {
-                    rawMessage.getMessageProperties().setExpiration("500");
-                    rawMessage.getMessageProperties().setHeaders(requeueHeaders);
-                    return rawMessage;
-                });
+                msg);
     }
 
     private void sendToMainQueue(UUID correlationId, Integer count, Instant msgExpiry, String message) {
