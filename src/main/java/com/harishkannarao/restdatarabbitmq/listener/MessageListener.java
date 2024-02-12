@@ -94,7 +94,7 @@ public class MessageListener {
             final Instant nextRetryInstant = Instant.now().plus(nextRetry);
             final Instant msgExpiry = Optional.ofNullable(headerMsgExpiry)
                     .orElseGet(() -> Instant.now().plus(Duration.parse("PT15S")));
-            sendToRetryQueue(correlationId, updatedCount, nextRetryInstant, msgExpiry, message);
+            sendToRetryQueue(correlationId, updatedCount, msgExpiry, nextRetryInstant, message);
         } finally {
             MDC.clear();
         }
@@ -113,7 +113,7 @@ public class MessageListener {
             MDC.put(X_CORRELATION_ID, correlationId.toString());
             LOGGER.info("Received Message for retry: {} {} {} {} {}", correlationId, count, msgExpiry, msgNextRetry, message);
             final Instant currentTime = Instant.now();
-            if (msgExpiry.isAfter(currentTime)) {
+            if (msgExpiry.isBefore(currentTime)) {
                 LOGGER.info("Message expired: {} {}", correlationId, message);
             } else if (msgNextRetry.isAfter(currentTime)) {
                 LOGGER.info("Sending message for retry: {} {}", correlationId, message);
