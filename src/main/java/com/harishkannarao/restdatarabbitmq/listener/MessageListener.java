@@ -115,7 +115,7 @@ public class MessageListener {
             final Instant currentTime = Instant.now();
             if (msgExpiry.isBefore(currentTime)) {
                 LOGGER.info("Message expired: {} {}", correlationId, message);
-            } else if (msgNextRetry.isAfter(currentTime)) {
+            } else if (msgNextRetry.isBefore(currentTime)) {
                 LOGGER.info("Sending message for retry: {} {}", correlationId, message);
                 sendToMainQueue(correlationId, count, msgExpiry, message);
             } else {
