@@ -89,7 +89,7 @@ public class MessageListener {
             LOGGER.error("Message Processing failed and sending for retry", e);
             final BigDecimal multiplicationFactor = new BigDecimal("1.25").pow(count);
             final Duration nextRetry = Duration.parse("PT2S")
-                    .multipliedBy(multiplicationFactor.longValueExact());
+                    .multipliedBy(multiplicationFactor.longValue());
             final int updatedCount = count + 1;
             final Instant nextRetryInstant = Instant.now().plus(nextRetry);
             final Instant msgExpiry = Optional.ofNullable(headerMsgExpiry)
