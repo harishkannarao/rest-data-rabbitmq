@@ -91,7 +91,7 @@ public class MessageListener {
             final Instant nextRetryInstant = Instant.now().plus(nextRetry);
             final Instant msgExpiry = Optional.ofNullable(headerMsgExpiry)
                     .orElseGet(() -> Instant.now().plus(Duration.parse("PT15S")));
-            sendToRetryQueue(correlationId, message, updatedCount, nextRetryInstant, msgExpiry);
+            sendToRetryQueue(correlationId, updatedCount, nextRetryInstant, msgExpiry, message);
         } finally {
             MDC.clear();
         }
@@ -114,49 +114,20 @@ public class MessageListener {
                 LOGGER.info("Message expired: {} {}", correlationId, message);
             } else if (msgNextRetry.isAfter(currentTime)) {
                 LOGGER.info("Sending message for retry: {} {}", correlationId, message);
-                sendMessageToRetry(correlationId, count, msgExpiry, message);
+                sendToMainQueue(correlationId, count, msgExpiry, message);
             } else {
                 LOGGER.info("Re-queue message for retry: {} {}", correlationId, message);
-                sendMessageToRequeue(correlationId, count, msgExpiry, msgNextRetry, message);
+                sendToRetryQueue(correlationId, count, msgExpiry, msgNextRetry, message);
             }
         } catch (Exception e) {
             LOGGER.error("Message Processing failed during retry and sending for retry", e);
-            sendMessageToRequeue(correlationId, count, msgExpiry, msgNextRetry, message);
+            sendToRetryQueue(correlationId, count, msgExpiry, msgNextRetry, message);
         } finally {
             MDC.clear();
         }
     }
 
-    private void sendToRetryQueue(UUID correlationId, String message, int updatedCount, Instant nextRetryInstant, Instant msgExpiry) {
-        Map<String, Object> retryHeaders = Map.ofEntries(
-                Map.entry(X_CORRELATION_ID, correlationId),
-                Map.entry(X_COUNT, updatedCount),
-                Map.entry(X_MESSAGE_NEXT_RETRY, nextRetryInstant),
-                Map.entry(X_MESSAGE_EXPIRY, msgExpiry)
-        );
-        rabbitMessagingTemplate.convertAndSend(
-                inboundRetryTopicExchange,
-                inboundRetryRoutingKey,
-                message,
-                retryHeaders
-        );
-    }
-
-    private void sendMessageToRetry(UUID correlationId, Integer count, Instant msgExpiry, String message) {
-        Map<String, Object> retryHeaders = Map.ofEntries(
-                Map.entry(X_CORRELATION_ID, correlationId),
-                Map.entry(X_COUNT, count),
-                Map.entry(X_MESSAGE_EXPIRY, msgExpiry)
-        );
-        rabbitMessagingTemplate.convertAndSend(
-                inboundTopicExchange,
-                inboundRoutingKey,
-                message,
-                retryHeaders
-        );
-    }
-
-    private void sendMessageToRequeue(UUID correlationId, Integer count, Instant msgExpiry, Instant msgNextRetry, String message) {
+    private void sendToRetryQueue(UUID correlationId, Integer count, Instant msgExpiry, Instant msgNextRetry, String message) {
         Map<String, Object> requeueHeaders = Map.ofEntries(
                 Map.entry(X_CORRELATION_ID, correlationId),
                 Map.entry(X_COUNT, count),
@@ -173,4 +144,19 @@ public class MessageListener {
                     return rawMessage;
                 });
     }
+
+    private void sendToMainQueue(UUID correlationId, Integer count, Instant msgExpiry, String message) {
+        Map<String, Object> retryHeaders = Map.ofEntries(
+                Map.entry(X_CORRELATION_ID, correlationId),
+                Map.entry(X_COUNT, count),
+                Map.entry(X_MESSAGE_EXPIRY, msgExpiry)
+        );
+        rabbitMessagingTemplate.convertAndSend(
+                inboundTopicExchange,
+                inboundRoutingKey,
+                message,
+                retryHeaders
+        );
+    }
+
 }
