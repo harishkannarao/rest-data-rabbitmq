@@ -87,7 +87,7 @@ public class MessageListener {
             }
         } catch (Exception e) {
             LOGGER.error("Message Processing failed and sending for retry", e);
-            final BigDecimal multiplicationFactor = new BigDecimal("1.5").pow(count);
+            final BigDecimal multiplicationFactor = new BigDecimal("1.25").pow(count);
             final Duration nextRetry = Duration.parse("PT2S")
                     .multipliedBy(multiplicationFactor.longValueExact());
             final int updatedCount = count + 1;
@@ -138,7 +138,7 @@ public class MessageListener {
                 Map.entry(X_MESSAGE_EXPIRY, msgExpiry)
         );
         MessageProperties messageProperties = new MessageProperties();
-        messageProperties.setExpiration("500");
+        messageProperties.setExpiration("250");
         messageProperties.setHeaders(requeueHeaders);
         Message msg = new Message(message.getBytes(StandardCharsets.UTF_8), messageProperties);
         rabbitTemplate.send(

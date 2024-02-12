@@ -41,14 +41,48 @@ public class TestMessageSenderController {
         this.jsonConverter = jsonConverter;
     }
 
-    @GetMapping("{count}")
-    public ResponseEntity<Map<String, Integer>> getById(@PathVariable("count") Integer count) {
+    @GetMapping("/success/{count}")
+    public ResponseEntity<Map<String, Integer>> sendSuccessMessages(@PathVariable("count") Integer count) {
         logger.info("Sending sample messages");
         IntStream.range(0, count)
                 .forEach(value -> {
                     SampleMessage sampleMessage = SampleMessage.builder()
                             .id(UUID.randomUUID())
-                            .value("$Hello World " + value)
+                            .value("Hello World " + value)
+                            .build();
+                    String message = jsonConverter.toJson(List.of(sampleMessage));
+                    Map<String, Object> headers = Map.of("X-Correlation-ID", sampleMessage.getId());
+                    rabbitMessagingTemplate.convertAndSend(inboundExchange, inboundRoutingKey, message, headers);
+                });
+
+        return ResponseEntity.ok(Map.of("count", count));
+    }
+
+    @GetMapping("/retry-and-succeed/{count}")
+    public ResponseEntity<Map<String, Integer>> sendRetryAndSucceedMessages(@PathVariable("count") Integer count) {
+        logger.info("Sending sample messages");
+        IntStream.range(0, count)
+                .forEach(value -> {
+                    SampleMessage sampleMessage = SampleMessage.builder()
+                            .id(UUID.randomUUID())
+                            .value("$$")
+                            .build();
+                    String message = jsonConverter.toJson(List.of(sampleMessage));
+                    Map<String, Object> headers = Map.of("X-Correlation-ID", sampleMessage.getId());
+                    rabbitMessagingTemplate.convertAndSend(inboundExchange, inboundRoutingKey, message, headers);
+                });
+
+        return ResponseEntity.ok(Map.of("count", count));
+    }
+
+    @GetMapping("/retry-and-expire/{count}")
+    public ResponseEntity<Map<String, Integer>> sendRetryAndExpireMessages(@PathVariable("count") Integer count) {
+        logger.info("Sending sample messages");
+        IntStream.range(0, count)
+                .forEach(value -> {
+                    SampleMessage sampleMessage = SampleMessage.builder()
+                            .id(UUID.randomUUID())
+                            .value("$$$$$$$$$")
                             .build();
                     String message = jsonConverter.toJson(List.of(sampleMessage));
                     Map<String, Object> headers = Map.of("X-Correlation-ID", sampleMessage.getId());
