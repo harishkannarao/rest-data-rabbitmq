@@ -80,13 +80,17 @@ public class MessageListener {
             }
         } catch (Exception e) {
             LOGGER.error("Message Processing failed and sending for retry", e);
-            final BigDecimal multiplicationFactor = new BigDecimal("2").pow(count);
-            final Duration nextRetry = Duration.parse("PT2S")
-                    .multipliedBy(multiplicationFactor.longValue());
+            final Duration nextRetryDuration = Duration.parse("PT2S");
+            final Duration msgExpiryDuration = Duration.parse("PT20S");
+            final String multiplicationFactor = "2";
+            long seconds = new BigDecimal(multiplicationFactor)
+                    .pow(count)
+                    .multiply(new BigDecimal(nextRetryDuration.getSeconds()))
+                    .longValue();
             final int updatedCount = count + 1;
-            final Instant nextRetryInstant = Instant.now().plus(nextRetry);
+            final Instant nextRetryInstant = Instant.now().plusSeconds(seconds);
             final Instant msgExpiry = Optional.ofNullable(headerMsgExpiry)
-                    .orElseGet(() -> Instant.now().plus(Duration.parse("PT15S")));
+                    .orElseGet(() -> Instant.now().plus(msgExpiryDuration));
             sendToRetryQueue(correlationId, updatedCount, msgExpiry, nextRetryInstant, message);
         } finally {
             MDC.clear();
