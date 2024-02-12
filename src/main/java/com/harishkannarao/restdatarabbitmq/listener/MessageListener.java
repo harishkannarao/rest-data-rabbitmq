@@ -5,18 +5,14 @@ import com.harishkannarao.restdatarabbitmq.json.JsonConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitMessagingTemplate;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -34,7 +30,6 @@ public class MessageListener {
     private static final String X_MESSAGE_NEXT_RETRY = "X-Message-Next-Retry";
     private final JsonConverter jsonConverter;
     private final RabbitMessagingTemplate rabbitMessagingTemplate;
-    private final RabbitTemplate rabbitTemplate;
     private final String outboundTopicExchange;
     private final String outboundRoutingKey;
     private final String inboundTopicExchange;
@@ -45,7 +40,6 @@ public class MessageListener {
     @Autowired
     public MessageListener(JsonConverter jsonConverter,
                            RabbitMessagingTemplate rabbitMessagingTemplate,
-                           RabbitTemplate rabbitTemplate,
                            @Value("${messaging.message-processor.outbound-topic-exchange}") String outboundTopicExchange,
                            @Value("${messaging.message-processor.outbound-routing-key}") String outboundRoutingKey,
                            @Value("${messaging.message-processor.inbound-topic-exchange}") String inboundTopicExchange,
@@ -55,7 +49,6 @@ public class MessageListener {
     ) {
         this.jsonConverter = jsonConverter;
         this.rabbitMessagingTemplate = rabbitMessagingTemplate;
-        this.rabbitTemplate = rabbitTemplate;
         this.outboundTopicExchange = outboundTopicExchange;
         this.outboundRoutingKey = outboundRoutingKey;
         this.inboundTopicExchange = inboundTopicExchange;
@@ -111,15 +104,15 @@ public class MessageListener {
             final String message) {
         try {
             MDC.put(X_CORRELATION_ID, correlationId.toString());
-            LOGGER.info("Received Message for retry: {} {} {} {} {}", correlationId, count, msgExpiry, msgNextRetry, message);
+            LOGGER.debug("Received Message for retry: {} {} {} {} {}", correlationId, count, msgExpiry, msgNextRetry, message);
             final Instant currentTime = Instant.now();
             if (msgExpiry.isBefore(currentTime)) {
-                LOGGER.info("Message expired: {} {}", correlationId, message);
+                LOGGER.info("Message expired: {} {} {} {} {}", correlationId, count, msgExpiry, msgNextRetry, message);
             } else if (msgNextRetry.isBefore(currentTime)) {
-                LOGGER.info("Sending message for retry: {} {}", correlationId, message);
+                LOGGER.info("Sending message for retry: {} {} {} {} {}", correlationId, count, msgExpiry, msgNextRetry, message);
                 sendToMainQueue(correlationId, count, msgExpiry, message);
             } else {
-                LOGGER.info("Re-queue message for retry: {} {}", correlationId, message);
+                LOGGER.debug("Re-queue message for retry: {} {}", correlationId, message);
                 sendToRetryQueue(correlationId, count, msgExpiry, msgNextRetry, message);
             }
         } catch (Exception e) {
@@ -137,14 +130,11 @@ public class MessageListener {
                 Map.entry(X_MESSAGE_NEXT_RETRY, msgNextRetry),
                 Map.entry(X_MESSAGE_EXPIRY, msgExpiry)
         );
-        MessageProperties messageProperties = new MessageProperties();
-        messageProperties.setExpiration("250");
-        messageProperties.setHeaders(requeueHeaders);
-        Message msg = new Message(message.getBytes(StandardCharsets.UTF_8), messageProperties);
-        rabbitTemplate.send(
+        rabbitMessagingTemplate.convertAndSend(
                 inboundRetryTopicExchange,
                 inboundRetryRoutingKey,
-                msg);
+                message,
+                requeueHeaders);
     }
 
     private void sendToMainQueue(UUID correlationId, Integer count, Instant msgExpiry, String message) {
