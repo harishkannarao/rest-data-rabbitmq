@@ -70,7 +70,7 @@ public class MessageListener {
         try {
             SampleMessage[] sampleMessages = jsonConverter.fromJson(message, SampleMessage[].class);
             for (SampleMessage sampleMessage : sampleMessages) {
-                LOGGER.info("Received Message: {} {}", correlationId, sampleMessage.toString());
+                LOGGER.info("Received Message: {} {} {} {}", correlationId, count, headerMsgExpiry, sampleMessage.toString());
                 if (sampleMessage.getValue().contains("$") && count <= sampleMessage.getValue().length()) {
                     throw new RuntimeException("Artificial Exception");
                 }
@@ -80,7 +80,7 @@ public class MessageListener {
             }
         } catch (Exception e) {
             LOGGER.error("Message Processing failed and sending for retry", e);
-            final BigDecimal multiplicationFactor = new BigDecimal("1.25").pow(count);
+            final BigDecimal multiplicationFactor = new BigDecimal("2").pow(count);
             final Duration nextRetry = Duration.parse("PT2S")
                     .multipliedBy(multiplicationFactor.longValue());
             final int updatedCount = count + 1;
