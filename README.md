@@ -23,11 +23,11 @@ This project demonstrates the REST endpoints backed by Spring Data CRUD reposito
 
 Send sample messages
 
-    curl -s 'http://localhost:8080/send-messages/success/2'
+    curl -s 'http://localhost:8080/send-messages/success/1'
 
-    curl -s 'http://localhost:8080/send-messages/retry-and-succeed/2'
+    curl -s 'http://localhost:8080/send-messages/retry-and-succeed/1'
 
-    curl -s 'http://localhost:8080/send-messages/retry-and-expire/2'
+    curl -s 'http://localhost:8080/send-messages/retry-and-expire/1'
 
 ### Run only unit tests
 
