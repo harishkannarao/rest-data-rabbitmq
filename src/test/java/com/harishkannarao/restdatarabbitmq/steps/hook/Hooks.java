@@ -3,10 +3,11 @@ package com.harishkannarao.restdatarabbitmq.steps.hook;
 import com.harishkannarao.restdatarabbitmq.runner.MySqlTestRunner;
 import com.harishkannarao.restdatarabbitmq.runner.RabbitMqTestRunner;
 import com.harishkannarao.restdatarabbitmq.runner.SpringBootTestRunner;
+import com.harishkannarao.restdatarabbitmq.steps.holder.LogbackAppenderHolder;
+import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 
-import java.util.List;
 import java.util.Properties;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -14,6 +15,11 @@ import java.util.stream.Stream;
 public class Hooks {
 
     private final Properties properties = new Properties();
+    private final LogbackAppenderHolder logbackAppenderHolder;
+
+    public Hooks(LogbackAppenderHolder logbackAppenderHolder) {
+        this.logbackAppenderHolder = logbackAppenderHolder;
+    }
 
     @Before(order = 1)
     public void setDefaultProperties() {
@@ -43,7 +49,8 @@ public class Hooks {
         Stream.of(mySqlStarter, rabbitMqStarter)
                 .parallel()
                 .map(Supplier::get)
-                .forEach(aBoolean -> {});
+                .forEach(aBoolean -> {
+                });
     }
 
     @Before(order = 4)
@@ -70,10 +77,21 @@ public class Hooks {
         }
     }
 
+
     @Before(order = 6)
+    public void startLogAppender() {
+        logbackAppenderHolder.getMessageListenerAppender().startLogsCapture();
+    }
+
+    @Before(order = 7)
     public void clearRabbitMq() {
         RabbitAdmin rabbitAdmin = SpringBootTestRunner.getBean(RabbitAdmin.class);
         rabbitAdmin.purgeQueue("test-queue-1", false);
         rabbitAdmin.purgeQueue("test-queue-2", false);
+    }
+
+    @After(order = 1)
+    public void stopLogAppender() {
+        logbackAppenderHolder.getMessageListenerAppender().stopLogsCapture();
     }
 }
