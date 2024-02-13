@@ -14,3 +14,9 @@ spring:
 logging:
   pattern:
     level: "%5p %X{X-Correlation-ID:--}"
+
+messaging:
+  message-processor:
+    inbound-retry-message-expiry-duration: "${INBOUND_RETRY_EXPIRY:PT20S}"
+    inbound-retry-delay-duration: "${INBOUND_RETRY_DELAY:PT2S}"
+    inbound-retry-delay-multiplication-factor: "${INBOUND_RETRY_MULTIPLICATION:2}"

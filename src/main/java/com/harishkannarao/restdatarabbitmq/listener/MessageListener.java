@@ -36,6 +36,9 @@ public class MessageListener {
     private final String inboundRoutingKey;
     private final String inboundRetryTopicExchange;
     private final String inboundRetryRoutingKey;
+    private final Duration nextRetryDuration;
+    private final Duration msgExpiryDuration;
+    private final String multiplicationFactor;
 
     @Autowired
     public MessageListener(JsonConverter jsonConverter,
@@ -45,7 +48,10 @@ public class MessageListener {
                            @Value("${messaging.message-processor.inbound-topic-exchange}") String inboundTopicExchange,
                            @Value("${messaging.message-processor.inbound-routing-key}") String inboundRoutingKey,
                            @Value("${messaging.message-processor.inbound-retry-topic-exchange}") String inboundRetryTopicExchange,
-                           @Value("${messaging.message-processor.inbound-retry-routing-key}") String inboundRetryRoutingKey
+                           @Value("${messaging.message-processor.inbound-retry-routing-key}") String inboundRetryRoutingKey,
+                           @Value("${messaging.message-processor.inbound-retry-message-expiry-duration}") Duration msgExpiryDuration,
+                           @Value("${messaging.message-processor.inbound-retry-delay-duration}") Duration nextRetryDuration,
+                           @Value("${messaging.message-processor.inbound-retry-delay-multiplication-factor}") String multiplicationFactor
     ) {
         this.jsonConverter = jsonConverter;
         this.rabbitMessagingTemplate = rabbitMessagingTemplate;
@@ -55,6 +61,9 @@ public class MessageListener {
         this.inboundRoutingKey = inboundRoutingKey;
         this.inboundRetryTopicExchange = inboundRetryTopicExchange;
         this.inboundRetryRoutingKey = inboundRetryRoutingKey;
+        this.nextRetryDuration = nextRetryDuration;
+        this.msgExpiryDuration = msgExpiryDuration;
+        this.multiplicationFactor = multiplicationFactor;
     }
 
     @RabbitListener(
@@ -80,9 +89,6 @@ public class MessageListener {
             }
         } catch (Exception e) {
             LOGGER.error("Message Processing failed", e);
-            final Duration nextRetryDuration = Duration.parse("PT2S");
-            final Duration msgExpiryDuration = Duration.parse("PT20S");
-            final String multiplicationFactor = "2";
             long seconds = new BigDecimal(multiplicationFactor)
                     .pow(count)
                     .multiply(new BigDecimal(nextRetryDuration.getSeconds()))
