@@ -79,7 +79,7 @@ public class MessageListener {
                 rabbitMessagingTemplate.convertAndSend(outboundTopicExchange, outboundRoutingKey, outboundMessage, headers);
             }
         } catch (Exception e) {
-            LOGGER.error("Message Processing failed and sending for retry", e);
+            LOGGER.error("Message Processing failed", e);
             final Duration nextRetryDuration = Duration.parse("PT2S");
             final Duration msgExpiryDuration = Duration.parse("PT20S");
             final String multiplicationFactor = "2";
@@ -91,6 +91,7 @@ public class MessageListener {
             final Instant nextRetryInstant = Instant.now().plusSeconds(seconds);
             final Instant msgExpiry = Optional.ofNullable(headerMsgExpiry)
                     .orElseGet(() -> Instant.now().plus(msgExpiryDuration));
+            LOGGER.info("Sending message for retry queue: {} {} {} {} {}", correlationId, updatedCount, headerMsgExpiry, nextRetryInstant, message);
             sendToRetryQueue(correlationId, updatedCount, msgExpiry, nextRetryInstant, message);
         } finally {
             MDC.clear();
@@ -113,10 +114,10 @@ public class MessageListener {
             if (msgExpiry.isBefore(currentTime)) {
                 LOGGER.info("Message expired: {} {} {} {} {}", correlationId, count, msgExpiry, msgNextRetry, message);
             } else if (msgNextRetry.isBefore(currentTime)) {
-                LOGGER.info("Sending message for retry: {} {} {} {} {}", correlationId, count, msgExpiry, msgNextRetry, message);
+                LOGGER.info("Sending message to main queue: {} {} {} {} {}", correlationId, count, msgExpiry, msgNextRetry, message);
                 sendToMainQueue(correlationId, count, msgExpiry, message);
             } else {
-                LOGGER.debug("Re-queue message for retry: {} {}", correlationId, message);
+                LOGGER.debug("Re-queue message in retry queue: {} {}", correlationId, message);
                 sendToRetryQueue(correlationId, count, msgExpiry, msgNextRetry, message);
             }
         } catch (Exception e) {
