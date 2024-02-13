@@ -1,5 +1,6 @@
 package com.harishkannarao.restdatarabbitmq.listener;
 
+import com.harishkannarao.restdatarabbitmq.domain.MessagePropertiesHolder;
 import com.harishkannarao.restdatarabbitmq.entity.SampleMessage;
 import com.harishkannarao.restdatarabbitmq.json.JsonConverter;
 import org.slf4j.Logger;
@@ -8,12 +9,10 @@ import org.slf4j.MDC;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitMessagingTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -30,40 +29,16 @@ public class MessageListener {
     private static final String X_MESSAGE_NEXT_RETRY = "X-Message-Next-Retry";
     private final JsonConverter jsonConverter;
     private final RabbitMessagingTemplate rabbitMessagingTemplate;
-    private final String outboundTopicExchange;
-    private final String outboundRoutingKey;
-    private final String inboundTopicExchange;
-    private final String inboundRoutingKey;
-    private final String inboundRetryTopicExchange;
-    private final String inboundRetryRoutingKey;
-    private final Duration nextRetryDuration;
-    private final Duration msgExpiryDuration;
-    private final String multiplicationFactor;
+    private final MessagePropertiesHolder properties;
 
     @Autowired
     public MessageListener(JsonConverter jsonConverter,
                            RabbitMessagingTemplate rabbitMessagingTemplate,
-                           @Value("${messaging.message-processor.outbound-topic-exchange}") String outboundTopicExchange,
-                           @Value("${messaging.message-processor.outbound-routing-key}") String outboundRoutingKey,
-                           @Value("${messaging.message-processor.inbound-topic-exchange}") String inboundTopicExchange,
-                           @Value("${messaging.message-processor.inbound-routing-key}") String inboundRoutingKey,
-                           @Value("${messaging.message-processor.inbound-retry-topic-exchange}") String inboundRetryTopicExchange,
-                           @Value("${messaging.message-processor.inbound-retry-routing-key}") String inboundRetryRoutingKey,
-                           @Value("${messaging.message-processor.inbound-retry-message-expiry-duration}") Duration msgExpiryDuration,
-                           @Value("${messaging.message-processor.inbound-retry-delay-duration}") Duration nextRetryDuration,
-                           @Value("${messaging.message-processor.inbound-retry-delay-multiplication-factor}") String multiplicationFactor
+                           MessagePropertiesHolder properties
     ) {
         this.jsonConverter = jsonConverter;
         this.rabbitMessagingTemplate = rabbitMessagingTemplate;
-        this.outboundTopicExchange = outboundTopicExchange;
-        this.outboundRoutingKey = outboundRoutingKey;
-        this.inboundTopicExchange = inboundTopicExchange;
-        this.inboundRoutingKey = inboundRoutingKey;
-        this.inboundRetryTopicExchange = inboundRetryTopicExchange;
-        this.inboundRetryRoutingKey = inboundRetryRoutingKey;
-        this.nextRetryDuration = nextRetryDuration;
-        this.msgExpiryDuration = msgExpiryDuration;
-        this.multiplicationFactor = multiplicationFactor;
+        this.properties = properties;
     }
 
     @RabbitListener(
@@ -85,18 +60,22 @@ public class MessageListener {
                 }
                 String outboundMessage = jsonConverter.toJson(List.of(sampleMessage));
                 Map<String, Object> headers = Map.of(X_CORRELATION_ID, sampleMessage.getId());
-                rabbitMessagingTemplate.convertAndSend(outboundTopicExchange, outboundRoutingKey, outboundMessage, headers);
+                rabbitMessagingTemplate.convertAndSend(
+                        properties.outboundTopicExchange(),
+                        properties.outboundRoutingKey(),
+                        outboundMessage,
+                        headers);
             }
         } catch (Exception e) {
             LOGGER.error("Message Processing failed", e);
-            long seconds = new BigDecimal(multiplicationFactor)
+            long seconds = new BigDecimal(properties.multiplicationFactor())
                     .pow(count)
-                    .multiply(new BigDecimal(nextRetryDuration.getSeconds()))
+                    .multiply(new BigDecimal(properties.nextRetryDuration().getSeconds()))
                     .longValue();
             final int updatedCount = count + 1;
             final Instant nextRetryInstant = Instant.now().plusSeconds(seconds);
             final Instant msgExpiry = Optional.ofNullable(headerMsgExpiry)
-                    .orElseGet(() -> Instant.now().plus(msgExpiryDuration));
+                    .orElseGet(() -> Instant.now().plus(properties.msgExpiryDuration()));
             LOGGER.info("Sending message for retry queue: {} {} {} {} {}", correlationId, updatedCount, headerMsgExpiry, nextRetryInstant, message);
             sendToRetryQueue(correlationId, updatedCount, msgExpiry, nextRetryInstant, message);
         } finally {
@@ -142,8 +121,8 @@ public class MessageListener {
                 Map.entry(X_MESSAGE_EXPIRY, msgExpiry)
         );
         rabbitMessagingTemplate.convertAndSend(
-                inboundRetryTopicExchange,
-                inboundRetryRoutingKey,
+                properties.inboundRetryTopicExchange(),
+                properties.inboundRetryRoutingKey(),
                 message,
                 requeueHeaders);
     }
@@ -155,8 +134,8 @@ public class MessageListener {
                 Map.entry(X_MESSAGE_EXPIRY, msgExpiry)
         );
         rabbitMessagingTemplate.convertAndSend(
-                inboundTopicExchange,
-                inboundRoutingKey,
+                properties.inboundTopicExchange(),
+                properties.inboundRoutingKey(),
                 message,
                 retryHeaders
         );
