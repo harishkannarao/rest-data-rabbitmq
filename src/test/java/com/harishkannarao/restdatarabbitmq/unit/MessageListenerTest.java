@@ -10,6 +10,7 @@ import org.mockito.Mockito;
 import org.springframework.amqp.rabbit.core.RabbitMessagingTemplate;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -64,4 +65,42 @@ public class MessageListenerTest {
         assertThat(stringArgumentCaptor.getValue()).isEqualTo(outMsg);
         assertThat(mapArgumentCaptor.getValue().get("X-Correlation-ID")).isEqualTo(correlationId);
     }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void handleMessage_shouldPublishMessage_toRetryQueue_onFirstFailure() {
+        UUID correlationId = UUID.randomUUID();
+        String inMsg = "inMsg";
+        String outMsg = "outMsg";
+        SampleMessage sampleMsg = SampleMessage.builder()
+                .id(correlationId)
+                .value("$$")
+                .build();
+        when(mockJsonConverter.fromJson(inMsg, SampleMessage[].class))
+                .thenReturn(new SampleMessage[]{sampleMsg});
+        when(mockJsonConverter.toJson(eq(List.of(sampleMsg))))
+                .thenReturn(outMsg);
+
+        messageListener.handleMessage(correlationId, null, null, inMsg);
+
+        ArgumentCaptor<String> stringArgumentCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Map<String, Object>> mapArgumentCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(mockRabbitMessagingTemplate, times(1))
+                .convertAndSend(
+                        eq(props.inboundRetryTopicExchange()),
+                        eq(props.inboundRetryRoutingKey()),
+                        stringArgumentCaptor.capture(),
+                        mapArgumentCaptor.capture());
+
+        assertThat(stringArgumentCaptor.getValue()).isEqualTo(inMsg);
+        assertThat(mapArgumentCaptor.getValue().get("X-Correlation-ID")).isEqualTo(correlationId);
+        assertThat(mapArgumentCaptor.getValue().get("X-Count")).isEqualTo(2);
+        Object nextRetry = mapArgumentCaptor.getValue().get("X-Message-Next-Retry");
+        assertThat(nextRetry).isInstanceOf(Instant.class);
+        Instant nextRetryInstant = (Instant) nextRetry;
+        assertThat(nextRetryInstant)
+                .isAfterOrEqualTo(Instant.now().minusSeconds(2))
+                .isBeforeOrEqualTo(Instant.now().plusSeconds(4));
+    }
+
 }
