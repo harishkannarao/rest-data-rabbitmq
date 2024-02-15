@@ -64,6 +64,7 @@ public class MessageListenerTest {
 
         assertThat(stringArgumentCaptor.getValue()).isEqualTo(outMsg);
         assertThat(mapArgumentCaptor.getValue().get("X-Correlation-ID")).isEqualTo(correlationId);
+        assertThat(mapArgumentCaptor.getValue()).hasSize(1);
     }
 
     @SuppressWarnings("unchecked")
@@ -71,15 +72,12 @@ public class MessageListenerTest {
     public void handleMessage_shouldPublishMessage_toRetryQueue_onExceptions_forNewMessage() {
         UUID correlationId = UUID.randomUUID();
         String inMsg = "inMsg";
-        String outMsg = "outMsg";
         SampleMessage sampleMsg = SampleMessage.builder()
                 .id(correlationId)
                 .value("$$")
                 .build();
         when(mockJsonConverter.fromJson(inMsg, SampleMessage[].class))
                 .thenReturn(new SampleMessage[]{sampleMsg});
-        when(mockJsonConverter.toJson(eq(List.of(sampleMsg))))
-                .thenReturn(outMsg);
 
         messageListener.handleMessage(correlationId, null, null, inMsg);
 
@@ -107,6 +105,7 @@ public class MessageListenerTest {
         assertThat(expiryInstant)
                 .isAfterOrEqualTo(Instant.now().plusSeconds(14))
                 .isBeforeOrEqualTo(Instant.now().plusSeconds(15));
+        assertThat(mapArgumentCaptor.getValue()).hasSize(4);
     }
 
     @SuppressWarnings("unchecked")
@@ -114,7 +113,6 @@ public class MessageListenerTest {
     public void handleMessage_shouldPublishMessage_toRetryQueue_onExceptions_forRetryMessage() {
         UUID correlationId = UUID.randomUUID();
         String inMsg = "inMsg";
-        String outMsg = "outMsg";
         SampleMessage sampleMsg = SampleMessage.builder()
                 .id(correlationId)
                 .value("$$")
@@ -123,8 +121,6 @@ public class MessageListenerTest {
         int count = 2;
         when(mockJsonConverter.fromJson(inMsg, SampleMessage[].class))
                 .thenReturn(new SampleMessage[]{sampleMsg});
-        when(mockJsonConverter.toJson(eq(List.of(sampleMsg))))
-                .thenReturn(outMsg);
 
 
         messageListener.handleMessage(correlationId, count, expiry, inMsg);
@@ -148,6 +144,48 @@ public class MessageListenerTest {
                 .isAfterOrEqualTo(Instant.now().minusSeconds(4))
                 .isBeforeOrEqualTo(Instant.now().plusSeconds(8));
         assertThat(mapArgumentCaptor.getValue().get("X-Message-Expiry")).isEqualTo(expiry);
+        assertThat(mapArgumentCaptor.getValue()).hasSize(4);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void handleMessage_shouldPublishMessage_toOutboundQueue_forRetryMessage() {
+        UUID correlationId = UUID.randomUUID();
+        String inMsg = "inMsg";
+        String outMsg = "outMsg";
+        SampleMessage sampleMsg = SampleMessage.builder()
+                .id(correlationId)
+                .value("$$")
+                .build();
+        Instant expiry = Instant.now().plusSeconds(15);
+        int count = 3;
+        when(mockJsonConverter.fromJson(inMsg, SampleMessage[].class))
+                .thenReturn(new SampleMessage[]{sampleMsg});
+        when(mockJsonConverter.toJson(eq(List.of(sampleMsg))))
+                .thenReturn(outMsg);
+
+
+        messageListener.handleMessage(correlationId, count, expiry, inMsg);
+
+        ArgumentCaptor<String> stringArgumentCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Map<String, Object>> mapArgumentCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(mockRabbitMessagingTemplate, times(1))
+                .convertAndSend(
+                        eq(props.outboundTopicExchange()),
+                        eq(props.outboundRoutingKey()),
+                        stringArgumentCaptor.capture(),
+                        mapArgumentCaptor.capture());
+
+        assertThat(stringArgumentCaptor.getValue()).isEqualTo(outMsg);
+        assertThat(mapArgumentCaptor.getValue().get("X-Correlation-ID")).isEqualTo(correlationId);
+        assertThat(mapArgumentCaptor.getValue()).hasSize(1);
+
+        verify(mockRabbitMessagingTemplate, times(0))
+                .convertAndSend(
+                        eq(props.inboundRetryTopicExchange()),
+                        eq(props.inboundRetryRoutingKey()),
+                        anyString(),
+                        anyMap());
     }
 
 }
