@@ -1,9 +1,14 @@
 package com.harishkannarao.restdatarabbitmq.unit;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.harishkannarao.restdatarabbitmq.domain.MessagePropertiesHolder;
 import com.harishkannarao.restdatarabbitmq.entity.SampleMessage;
 import com.harishkannarao.restdatarabbitmq.json.JsonConverter;
 import com.harishkannarao.restdatarabbitmq.listener.MessageListener;
+import com.harishkannarao.restdatarabbitmq.logback.LogbackTestAppender;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -20,6 +25,10 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 public class MessageListenerTest {
+
+    private final LogbackTestAppender logbackTestAppender = new LogbackTestAppender(
+            MessageListener.class.getName(),
+            Level.INFO);
     private final JsonConverter mockJsonConverter = Mockito.mock(JsonConverter.class);
     private final RabbitMessagingTemplate mockRabbitMessagingTemplate = Mockito.mock(RabbitMessagingTemplate.class);
 
@@ -35,6 +44,16 @@ public class MessageListenerTest {
             "2"
     );
     private final MessageListener messageListener = new MessageListener(mockJsonConverter, mockRabbitMessagingTemplate, props);
+
+    @BeforeEach
+    public void setUp() {
+        logbackTestAppender.startLogsCapture();
+    }
+
+    @AfterEach
+    public void tearDown() {
+        logbackTestAppender.stopLogsCapture();
+    }
 
     @SuppressWarnings("unchecked")
     @Test
@@ -187,5 +206,98 @@ public class MessageListenerTest {
                         anyString(),
                         anyMap());
     }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void handleRetry_shouldSendMessage_toRetryQueue_whenNextRetryTimeNotLapsed() {
+        UUID correlationId = UUID.randomUUID();
+        int count = 2;
+        Instant msgExpiry = Instant.now().plusSeconds(5);
+        Instant msgNextRetry = Instant.now().plusSeconds(2);
+        String message = "inMsg";
+
+        messageListener.handleRetry(
+                correlationId,
+                count,
+                msgExpiry,
+                msgNextRetry,
+                message
+        );
+
+        ArgumentCaptor<Map<String, Object>> mapArgumentCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(mockRabbitMessagingTemplate, times(1))
+                .convertAndSend(
+                        eq(props.inboundRetryTopicExchange()),
+                        eq(props.inboundRetryRoutingKey()),
+                        eq(message),
+                        mapArgumentCaptor.capture()
+                );
+        assertThat(mapArgumentCaptor.getValue().get("X-Correlation-ID")).isEqualTo(correlationId);
+        assertThat(mapArgumentCaptor.getValue().get("X-Count")).isEqualTo(count);
+        assertThat(mapArgumentCaptor.getValue().get("X-Message-Next-Retry")).isEqualTo(msgNextRetry);
+        assertThat(mapArgumentCaptor.getValue().get("X-Message-Expiry")).isEqualTo(msgExpiry);
+        assertThat(mapArgumentCaptor.getValue()).hasSize(4);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void handleRetry_shouldSendMessage_toMainQueue_whenNextRetryTimeLapsed() {
+        UUID correlationId = UUID.randomUUID();
+        int count = 2;
+        Instant msgExpiry = Instant.now().plusSeconds(5);
+        Instant msgNextRetry = Instant.now();
+        String message = "inMsg";
+
+        messageListener.handleRetry(
+                correlationId,
+                count,
+                msgExpiry,
+                msgNextRetry,
+                message
+        );
+
+        ArgumentCaptor<Map<String, Object>> mapArgumentCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(mockRabbitMessagingTemplate, times(1))
+                .convertAndSend(
+                        eq(props.inboundTopicExchange()),
+                        eq(props.inboundRoutingKey()),
+                        eq(message),
+                        mapArgumentCaptor.capture()
+                );
+        assertThat(mapArgumentCaptor.getValue().get("X-Correlation-ID")).isEqualTo(correlationId);
+        assertThat(mapArgumentCaptor.getValue().get("X-Count")).isEqualTo(count);
+        assertThat(mapArgumentCaptor.getValue().get("X-Message-Expiry")).isEqualTo(msgExpiry);
+        assertThat(mapArgumentCaptor.getValue()).hasSize(3);
+    }
+
+    @Test
+    public void handleRetry_shouldExpireMessage_whenExpiryTimeLapsed() {
+        UUID correlationId = UUID.randomUUID();
+        int count = 2;
+        Instant msgExpiry = Instant.now();
+        Instant msgNextRetry = Instant.now().plusSeconds(2);
+        String message = "inMsg";
+
+        messageListener.handleRetry(
+                correlationId,
+                count,
+                msgExpiry,
+                msgNextRetry,
+                message
+        );
+
+        assertThat(logbackTestAppender.getLogs())
+                .extracting(ILoggingEvent::getFormattedMessage)
+                .anySatisfy(s -> assertThat(s).contains("Message expired:"));
+
+        verify(mockRabbitMessagingTemplate, times(0))
+                .convertAndSend(
+                        anyString(),
+                        anyString(),
+                        anyString(),
+                        anyMap()
+                );
+    }
+
 
 }
