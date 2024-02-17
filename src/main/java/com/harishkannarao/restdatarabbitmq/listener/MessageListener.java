@@ -10,6 +10,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitMessagingTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -48,7 +49,7 @@ public class MessageListener {
             @Header(X_CORRELATION_ID) final UUID correlationId,
             @Header(value = X_COUNT, required = false) final Integer headerCount,
             @Header(value = X_MESSAGE_EXPIRY, required = false) final Instant headerMsgExpiry,
-            final String message) {
+            @Payload final String message) {
         MDC.put(X_CORRELATION_ID, correlationId.toString());
         final int count = Optional.ofNullable(headerCount).orElse(1);
         try {
@@ -91,7 +92,7 @@ public class MessageListener {
             @Header(value = X_COUNT) final Integer count,
             @Header(value = X_MESSAGE_EXPIRY) final Instant msgExpiry,
             @Header(value = X_MESSAGE_NEXT_RETRY) final Instant msgNextRetry,
-            final String message) {
+            @Payload final String message) {
         try {
             MDC.put(X_CORRELATION_ID, correlationId.toString());
             LOGGER.debug("Received Message for retry: {} {} {} {} {}", correlationId, count, msgExpiry, msgNextRetry, message);
