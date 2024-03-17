@@ -19,7 +19,7 @@ This project demonstrates the REST endpoints backed by Spring Data CRUD reposito
 
 ### Run application with MySql and RabbitMq
 
-    mvn test-compile exec:java@run-local
+    mvn clean test-compile exec:java@run-local
 
 Send sample messages
 
