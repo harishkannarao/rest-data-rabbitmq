@@ -29,6 +29,13 @@ Send sample messages
 
     curl -s 'http://localhost:8080/send-messages/retry-and-expire/1'
 
+Rabbit MQ Management Portal
+
+    http://localhost:15672
+
+username: guest
+password: guest
+
 ### Run only unit tests
 
     mvn clean install -DskipITs
