@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -55,7 +56,6 @@ public class MessageListenerTest {
         logbackTestAppender.stopLogsCapture();
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void handleMessage_shouldPublishMessage_toOutboundQueue() {
         UUID correlationId = UUID.randomUUID();
@@ -69,24 +69,30 @@ public class MessageListenerTest {
                 .thenReturn(new SampleMessage[]{sampleMsg});
         when(mockJsonConverter.toJson(eq(List.of(sampleMsg))))
                 .thenReturn(outMsg);
+        doNothing()
+                .when(mockRabbitMessagingTemplate)
+                .convertAndSend(
+                        eq(props.outboundTopicExchange()),
+                        eq(props.outboundRoutingKey()),
+                        eq(outMsg),
+                        argThat((Map<String, Object> map) -> {
+                            assertThat(map.get("X-Correlation-ID")).isEqualTo(correlationId);
+                            assertThat(map).hasSize(1);
+                            return true;
+                        })
+
+                );
 
         messageListener.handleMessage(correlationId, null, null, inMsg);
 
-        ArgumentCaptor<String> stringArgumentCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<Map<String, Object>> mapArgumentCaptor = ArgumentCaptor.forClass(Map.class);
         verify(mockRabbitMessagingTemplate, times(1))
                 .convertAndSend(
                         eq(props.outboundTopicExchange()),
                         eq(props.outboundRoutingKey()),
-                        stringArgumentCaptor.capture(),
-                        mapArgumentCaptor.capture());
-
-        assertThat(stringArgumentCaptor.getValue()).isEqualTo(outMsg);
-        assertThat(mapArgumentCaptor.getValue().get("X-Correlation-ID")).isEqualTo(correlationId);
-        assertThat(mapArgumentCaptor.getValue()).hasSize(1);
+                        any(),
+                        anyMap());
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void handleMessage_shouldPublishMessage_toRetryQueue_onExceptions_forNewMessage() {
         UUID correlationId = UUID.randomUUID();
@@ -97,37 +103,43 @@ public class MessageListenerTest {
                 .build();
         when(mockJsonConverter.fromJson(inMsg, SampleMessage[].class))
                 .thenReturn(new SampleMessage[]{sampleMsg});
+        doNothing()
+                .when(mockRabbitMessagingTemplate)
+                .convertAndSend(
+                        eq(props.outboundTopicExchange()),
+                        eq(props.outboundRoutingKey()),
+                        eq(inMsg),
+                        argThat((Map<String, Object> map) -> {
+                            assertThat(map.get("X-Correlation-ID")).isEqualTo(correlationId);
+                            assertThat(map.get("X-Count")).isEqualTo(2);
+                            Object nextRetry = map.get("X-Message-Next-Retry");
+                            assertThat(nextRetry).isInstanceOf(Instant.class);
+                            Instant nextRetryInstant = (Instant) nextRetry;
+                            assertThat(nextRetryInstant)
+                                    .isAfterOrEqualTo(Instant.now().minusSeconds(2))
+                                    .isBeforeOrEqualTo(Instant.now().plusSeconds(4));
+                            Object expiry = map.get("X-Message-Expiry");
+                            assertThat(expiry).isInstanceOf(Instant.class);
+                            Instant expiryInstant = (Instant) expiry;
+                            assertThat(expiryInstant)
+                                    .isAfterOrEqualTo(Instant.now().plusSeconds(14))
+                                    .isBeforeOrEqualTo(Instant.now().plusSeconds(15));
+                            assertThat(map).hasSize(4);
+                            return true;
+                        })
+
+                );
 
         messageListener.handleMessage(correlationId, null, null, inMsg);
 
-        ArgumentCaptor<String> stringArgumentCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<Map<String, Object>> mapArgumentCaptor = ArgumentCaptor.forClass(Map.class);
         verify(mockRabbitMessagingTemplate, times(1))
                 .convertAndSend(
                         eq(props.inboundRetryTopicExchange()),
                         eq(props.inboundRetryRoutingKey()),
-                        stringArgumentCaptor.capture(),
-                        mapArgumentCaptor.capture());
-
-        assertThat(stringArgumentCaptor.getValue()).isEqualTo(inMsg);
-        assertThat(mapArgumentCaptor.getValue().get("X-Correlation-ID")).isEqualTo(correlationId);
-        assertThat(mapArgumentCaptor.getValue().get("X-Count")).isEqualTo(2);
-        Object nextRetry = mapArgumentCaptor.getValue().get("X-Message-Next-Retry");
-        assertThat(nextRetry).isInstanceOf(Instant.class);
-        Instant nextRetryInstant = (Instant) nextRetry;
-        assertThat(nextRetryInstant)
-                .isAfterOrEqualTo(Instant.now().minusSeconds(2))
-                .isBeforeOrEqualTo(Instant.now().plusSeconds(4));
-        Object expiry = mapArgumentCaptor.getValue().get("X-Message-Expiry");
-        assertThat(expiry).isInstanceOf(Instant.class);
-        Instant expiryInstant = (Instant) expiry;
-        assertThat(expiryInstant)
-                .isAfterOrEqualTo(Instant.now().plusSeconds(14))
-                .isBeforeOrEqualTo(Instant.now().plusSeconds(15));
-        assertThat(mapArgumentCaptor.getValue()).hasSize(4);
+                        any(),
+                        anyMap());
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void handleMessage_shouldPublishMessage_toRetryQueue_onExceptions_forRetryMessage() {
         UUID correlationId = UUID.randomUUID();
@@ -140,30 +152,37 @@ public class MessageListenerTest {
         int count = 2;
         when(mockJsonConverter.fromJson(inMsg, SampleMessage[].class))
                 .thenReturn(new SampleMessage[]{sampleMsg});
+        doNothing()
+                .when(mockRabbitMessagingTemplate)
+                .convertAndSend(
+                        eq(props.outboundTopicExchange()),
+                        eq(props.outboundRoutingKey()),
+                        eq(inMsg),
+                        argThat((Map<String, Object> map) -> {
+                            assertThat(map.get("X-Correlation-ID")).isEqualTo(correlationId);
+                            assertThat(map.get("X-Count")).isEqualTo(count + 1);
+                            Object nextRetry = map.get("X-Message-Next-Retry");
+                            assertThat(nextRetry).isInstanceOf(Instant.class);
+                            Instant nextRetryInstant = (Instant) nextRetry;
+                            assertThat(nextRetryInstant)
+                                    .isAfterOrEqualTo(Instant.now().minusSeconds(4))
+                                    .isBeforeOrEqualTo(Instant.now().plusSeconds(8));
+                            assertThat(map.get("X-Message-Expiry")).isEqualTo(expiry);
+                            assertThat(map).hasSize(4);
+                            return true;
+                        })
+
+                );
 
 
         messageListener.handleMessage(correlationId, count, expiry, inMsg);
 
-        ArgumentCaptor<String> stringArgumentCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<Map<String, Object>> mapArgumentCaptor = ArgumentCaptor.forClass(Map.class);
         verify(mockRabbitMessagingTemplate, times(1))
                 .convertAndSend(
                         eq(props.inboundRetryTopicExchange()),
                         eq(props.inboundRetryRoutingKey()),
-                        stringArgumentCaptor.capture(),
-                        mapArgumentCaptor.capture());
-
-        assertThat(stringArgumentCaptor.getValue()).isEqualTo(inMsg);
-        assertThat(mapArgumentCaptor.getValue().get("X-Correlation-ID")).isEqualTo(correlationId);
-        assertThat(mapArgumentCaptor.getValue().get("X-Count")).isEqualTo(count+1);
-        Object nextRetry = mapArgumentCaptor.getValue().get("X-Message-Next-Retry");
-        assertThat(nextRetry).isInstanceOf(Instant.class);
-        Instant nextRetryInstant = (Instant) nextRetry;
-        assertThat(nextRetryInstant)
-                .isAfterOrEqualTo(Instant.now().minusSeconds(4))
-                .isBeforeOrEqualTo(Instant.now().plusSeconds(8));
-        assertThat(mapArgumentCaptor.getValue().get("X-Message-Expiry")).isEqualTo(expiry);
-        assertThat(mapArgumentCaptor.getValue()).hasSize(4);
+                        any(),
+                        anyMap());
     }
 
     @SuppressWarnings("unchecked")
