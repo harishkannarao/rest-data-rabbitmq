@@ -9,7 +9,7 @@ import static io.cucumber.junit.platform.engine.Constants.GLUE_PROPERTY_NAME;
 
 @Suite
 @IncludeEngines("cucumber")
-@SelectClasspathResource("com/harishkannarao")
-@ConfigurationParameter(key = GLUE_PROPERTY_NAME, value = "com.harishkannarao")
+@SelectClasspathResource("com/harishkannarao/features")
+@ConfigurationParameter(key = GLUE_PROPERTY_NAME, value = "com.harishkannarao.restdatarabbitmq.steps")
 public class RunCucumberIT {
 }
