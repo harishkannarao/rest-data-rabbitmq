@@ -1,17 +1,15 @@
 package com.harishkannarao.restdatarabbitmq.runner;
 
-import com.harishkannarao.restdatarabbitmq.RestDataRabbitmqApplication;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.env.Environment;
 
 import java.util.Optional;
-import java.util.Properties;
 
 public class SpringBootTestRunner {
     private static ConfigurableApplicationContext context;
-    private static Properties properties;
+    private static SpringSettings springSettings;
 
     public static void stop() {
         if (isRunning()) {
@@ -19,17 +17,25 @@ public class SpringBootTestRunner {
         }
     }
 
-    public static void start(Properties props) {
-        String[] args = props.entrySet().stream()
+    public static void start(SpringSettings settings) {
+        String[] args = settings.properties().entrySet().stream()
                 .map(entry -> String.format("--%s=%s", entry.getKey(), entry.getValue()))
                 .toArray(String[]::new);
-        context = SpringApplication.run(RestDataRabbitmqApplication.class, args);
-        properties = props;
+        context = SpringApplication.run(settings.sources().toArray(Class<?>[]::new), args);
+        springSettings = settings;
     }
 
-    public static void restart(Properties props) {
+    public static void restart(SpringSettings settings) {
         stop();
-        start(props);
+        start(settings);
+    }
+
+    public static void bootStrap(SpringSettings settings) {
+        if (!SpringBootTestRunner.isRunning()) {
+            SpringBootTestRunner.start(settings);
+        } else if (!settings.equals(SpringBootTestRunner.getSettings())) {
+            SpringBootTestRunner.restart(settings);
+        }
     }
 
     public static boolean isRunning() {
@@ -38,8 +44,8 @@ public class SpringBootTestRunner {
                 .orElse(false);
     }
 
-    public static Properties getProperties() {
-        return Optional.ofNullable(properties).orElseGet(Properties::new);
+    public static SpringSettings getSettings() {
+        return springSettings;
     }
 
     public static <T> T getBean(Class<T> clazz) {

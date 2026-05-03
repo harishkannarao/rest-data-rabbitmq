@@ -1,14 +1,17 @@
 package com.harishkannarao.restdatarabbitmq.steps.hook;
 
+import com.harishkannarao.restdatarabbitmq.RestDataRabbitmqApplication;
 import com.harishkannarao.restdatarabbitmq.runner.MySqlTestRunner;
 import com.harishkannarao.restdatarabbitmq.runner.RabbitMqTestRunner;
 import com.harishkannarao.restdatarabbitmq.runner.SpringBootTestRunner;
+import com.harishkannarao.restdatarabbitmq.runner.SpringSettings;
 import com.harishkannarao.restdatarabbitmq.steps.holder.LogbackAppenderHolder;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 
 import java.util.Properties;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -70,11 +73,8 @@ public class Hooks {
 
     @Before(order = 5)
     public void bootStrap() {
-        if (!SpringBootTestRunner.isRunning()) {
-            SpringBootTestRunner.start(properties);
-        } else if (!properties.equals(SpringBootTestRunner.getProperties())) {
-            SpringBootTestRunner.restart(properties);
-        }
+        final SpringSettings settings = new SpringSettings(Set.of(RestDataRabbitmqApplication.class), properties);
+        SpringBootTestRunner.bootStrap(settings);
     }
 
 

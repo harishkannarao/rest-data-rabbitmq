@@ -1,11 +1,13 @@
 package com.harishkannarao.restdatarabbitmq.runner;
 
+import com.harishkannarao.restdatarabbitmq.RestDataRabbitmqApplication;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 
 import java.util.Properties;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -29,8 +31,8 @@ public class ApplicationLocalRunner {
                 .forEach(aBoolean -> {});
 
         final Properties properties = createProperties();
-
-        SpringBootTestRunner.start(properties);
+        final SpringSettings settings = new SpringSettings(Set.of(RestDataRabbitmqApplication.class), properties);
+        SpringBootTestRunner.start(settings);
 
         final Logger logger
                 = LoggerFactory.getLogger(ApplicationLocalRunner.class);
