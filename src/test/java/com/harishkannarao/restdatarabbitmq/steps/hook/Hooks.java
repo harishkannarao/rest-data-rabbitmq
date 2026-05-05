@@ -8,6 +8,8 @@ import com.harishkannarao.restdatarabbitmq.runner.SpringSettings;
 import com.harishkannarao.restdatarabbitmq.steps.holder.LogbackAppenderHolder;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
+import io.cucumber.java.Scenario;
+import org.junit.jupiter.api.Assumptions;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 
 import java.util.Properties;
@@ -28,6 +30,13 @@ public class Hooks {
     public void setDefaultProperties() {
         properties.setProperty("server.port", "0");
         properties.setProperty("spring.profiles.active", "int-test");
+    }
+
+    @Before(order = 1)
+    public void skipByTag(Scenario scenario) {
+        boolean isDisabled = scenario.getSourceTagNames().contains("@Disabled");
+        // If true, the assumption fails and JUnit skips the test
+        Assumptions.assumeFalse(isDisabled, "Aborting scenario: Marked with @Disabled");
     }
 
     @Before(order = 2, value = "@FeatureDisableStudentApi")
