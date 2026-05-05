@@ -1,5 +1,7 @@
 package com.harishkannarao.restdatarabbitmq.runner;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.Lifecycle;
@@ -8,6 +10,7 @@ import org.springframework.core.env.Environment;
 import java.util.Optional;
 
 public class SpringBootTestRunner {
+    private final static Logger LOGGER = LoggerFactory.getLogger(SpringBootTestRunner.class);
     private static ConfigurableApplicationContext context;
     private static SpringSettings springSettings;
 
@@ -15,6 +18,7 @@ public class SpringBootTestRunner {
         if (isRunning()) {
             SpringApplication.exit(context);
         }
+        LOGGER.info("Application Stopped");
     }
 
     public static void start(SpringSettings settings) {
@@ -23,9 +27,11 @@ public class SpringBootTestRunner {
                 .toArray(String[]::new);
         context = SpringApplication.run(settings.sources().toArray(Class<?>[]::new), args);
         springSettings = settings;
+        LOGGER.info("Application Started");
     }
 
     public static void restart(SpringSettings settings) {
+        LOGGER.info("Application Restarting");
         stop();
         start(settings);
     }

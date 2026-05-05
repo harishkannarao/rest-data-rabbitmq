@@ -1,6 +1,7 @@
 package com.harishkannarao.restdatarabbitmq.steps.hook;
 
 import com.harishkannarao.restdatarabbitmq.RestDataRabbitmqApplication;
+import com.harishkannarao.restdatarabbitmq.config.RabbitMqConfiguration;
 import com.harishkannarao.restdatarabbitmq.runner.MySqlTestRunner;
 import com.harishkannarao.restdatarabbitmq.runner.RabbitMqTestRunner;
 import com.harishkannarao.restdatarabbitmq.runner.SpringBootTestRunner;
@@ -82,7 +83,10 @@ public class Hooks {
 
     @Before(order = 5)
     public void bootStrap() {
-        final SpringSettings settings = new SpringSettings(Set.of(RestDataRabbitmqApplication.class), properties);
+        Set<Class<?>> sources = Set.of(
+                RestDataRabbitmqApplication.class,
+                RabbitMqConfiguration.class);
+        final SpringSettings settings = new SpringSettings(sources, properties);
         SpringBootTestRunner.bootStrap(settings);
     }
 
