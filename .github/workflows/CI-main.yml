@@ -20,12 +20,12 @@ jobs:
         java-package: jdk
         architecture: x64
     - name: Cache maven dependencies
-      uses: actions/cache@v1
+      uses: actions/cache@v4
       with:
         path: ~/.m2
-        key: ${{ runner.os }}-maven-cache-master-v1
+        key: ${{ runner.os }}-maven-cache-master-v4
         restore-keys: |
-          ${{ runner.os }}-maven-cache-master-v1
+          ${{ runner.os }}-maven-cache-master-v4
     - name: 'CI Build Command'
       timeout-minutes: 20
       run: |
