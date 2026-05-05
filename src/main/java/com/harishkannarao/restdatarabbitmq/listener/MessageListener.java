@@ -107,8 +107,13 @@ public class MessageListener {
                 sendToRetryQueue(correlationId, count, msgExpiry, msgNextRetry, message);
             }
         } catch (Exception e) {
-            LOGGER.error("Message Processing failed during retry and sending for retry", e);
-            sendToRetryQueue(correlationId, count, msgExpiry, msgNextRetry, message);
+            LOGGER.error("Message Processing failed during retry and sending once again for retry", e);
+            long seconds = new BigDecimal(properties.multiplicationFactor())
+                    .pow(count)
+                    .multiply(new BigDecimal(properties.nextRetryDuration().getSeconds()))
+                    .longValue();
+            final Instant nextRetryInstant = Instant.now().plusSeconds(seconds);
+            sendToRetryQueue(correlationId, count, msgExpiry, nextRetryInstant, message);
         } finally {
             MDC.clear();
         }
