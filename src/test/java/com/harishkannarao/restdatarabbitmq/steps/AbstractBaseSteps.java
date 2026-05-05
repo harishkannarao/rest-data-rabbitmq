@@ -3,8 +3,8 @@ package com.harishkannarao.restdatarabbitmq.steps;
 import com.harishkannarao.restdatarabbitmq.json.JsonConverter;
 import com.harishkannarao.restdatarabbitmq.runner.SpringBootTestRunner;
 import org.springframework.amqp.rabbit.core.RabbitMessagingTemplate;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.env.Environment;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
 public abstract class AbstractBaseSteps {
 
@@ -24,8 +24,8 @@ public abstract class AbstractBaseSteps {
         return SpringBootTestRunner.getApplicationUrl();
     }
 
-    protected TestRestTemplate testRestTemplate() {
-        return new TestRestTemplate();
+    protected WebTestClient webTestClient() {
+        return WebTestClient.bindToServer().build();
     }
 
     protected JsonConverter jsonConverter() {

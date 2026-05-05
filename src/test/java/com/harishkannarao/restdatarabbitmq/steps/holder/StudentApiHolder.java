@@ -2,10 +2,10 @@ package com.harishkannarao.restdatarabbitmq.steps.holder;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.test.web.reactive.server.EntityExchangeResult;
 
 @Data
 @NoArgsConstructor
 public class StudentApiHolder {
-    private ResponseEntity<String> getByIdResponse;
+    private EntityExchangeResult<String> getByIdResponse;
 }
