@@ -1,6 +1,7 @@
-package com.harishkannarao.restdatarabbitmq.integration;
+package com.harishkannarao.restdatarabbitmq.integration.publisher;
 
 import com.harishkannarao.restdatarabbitmq.entity.SampleMessage;
+import com.harishkannarao.restdatarabbitmq.integration.AbstractBaseIntegration;
 import com.harishkannarao.restdatarabbitmq.listener.TestMessageListener;
 import com.harishkannarao.restdatarabbitmq.publisher.MessagePublisher;
 import org.junit.jupiter.api.BeforeEach;
