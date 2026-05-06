@@ -9,22 +9,37 @@ import com.harishkannarao.restdatarabbitmq.runner.SpringSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 
+import java.util.Collections;
 import java.util.Properties;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class AbstractBaseIntegration {
+
+    protected Set<Class<?>> additionalConfigurations() {
+        return Collections.emptySet();
+    }
+
+    protected Properties additionalProperties() {
+        return new Properties();
+    }
 
     @BeforeEach
     public void applicationBootStrap() {
         startDependencies();
 
         final Properties properties = createProperties();
-        Set<Class<?>> sources = Set.of(
+        properties.putAll(additionalProperties());
+        Set<Class<?>> defaultSources = Set.of(
                 RestDataRabbitmqApplication.class,
                 RabbitMqConfiguration.class);
-        final SpringSettings settings = new SpringSettings(sources, properties);
+        Set<Class<?>> finalSources = Stream.concat(
+                        defaultSources.stream(),
+                        additionalConfigurations().stream())
+                .collect(Collectors.toUnmodifiableSet());
+        final SpringSettings settings = new SpringSettings(finalSources, properties);
         SpringBootTestRunner.bootStrap(settings);
 
         RabbitAdmin rabbitAdmin = SpringBootTestRunner.getBean(RabbitAdmin.class);
@@ -68,6 +83,7 @@ public abstract class AbstractBaseIntegration {
         Stream.of(mySqlStarter, rabbitMqStarter)
                 .parallel()
                 .map(Supplier::get)
-                .forEach(_ -> {});
+                .forEach(_ -> {
+                });
     }
 }
