@@ -8,6 +8,7 @@ import com.harishkannarao.restdatarabbitmq.runner.SpringBootTestRunner;
 import com.harishkannarao.restdatarabbitmq.runner.SpringSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.core.env.Environment;
 
 import java.util.Collections;
 import java.util.Properties;
@@ -24,6 +25,14 @@ public abstract class AbstractBaseIntegration {
 
     protected Properties additionalProperties() {
         return new Properties();
+    }
+
+    protected <T> T getBean(Class<T> clazz) {
+        return SpringBootTestRunner.getBean(clazz);
+    }
+
+    protected String getProperty(String key) {
+        return getBean(Environment.class).getProperty(key);
     }
 
     @BeforeEach
