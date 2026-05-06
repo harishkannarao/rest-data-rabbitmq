@@ -3,11 +3,9 @@ package com.harishkannarao.restdatarabbitmq.listener;
 import com.harishkannarao.restdatarabbitmq.domain.MessagePropertiesHolder;
 import com.harishkannarao.restdatarabbitmq.entity.SampleMessage;
 import com.harishkannarao.restdatarabbitmq.json.JsonConverter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.harishkannarao.restdatarabbitmq.publisher.MessagePublisher;
 import org.slf4j.MDC;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.amqp.rabbit.core.RabbitMessagingTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -15,30 +13,25 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+
+import static com.harishkannarao.restdatarabbitmq.constants.MessageConstants.*;
 
 @Component
 public class MessageListener {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageListener.class);
-    private static final String X_CORRELATION_ID = "X-Correlation-ID";
-    private static final String X_COUNT = "X-Count";
-    private static final String X_MESSAGE_EXPIRY = "X-Message-Expiry";
-    private static final String X_MESSAGE_NEXT_RETRY = "X-Message-Next-Retry";
     private final JsonConverter jsonConverter;
-    private final RabbitMessagingTemplate rabbitMessagingTemplate;
+    private final MessagePublisher messagePublisher;
     private final MessagePropertiesHolder properties;
 
     @Autowired
     public MessageListener(JsonConverter jsonConverter,
-                           RabbitMessagingTemplate rabbitMessagingTemplate,
+                           MessagePublisher messagePublisher,
                            MessagePropertiesHolder properties
     ) {
         this.jsonConverter = jsonConverter;
-        this.rabbitMessagingTemplate = rabbitMessagingTemplate;
+        this.messagePublisher = messagePublisher;
         this.properties = properties;
     }
 
@@ -59,13 +52,7 @@ public class MessageListener {
                 if (sampleMessage.getValue().contains("$") && count <= sampleMessage.getValue().length()) {
                     throw new RuntimeException("Artificial Exception");
                 }
-                String outboundMessage = jsonConverter.toJson(List.of(sampleMessage));
-                Map<String, Object> headers = Map.of(X_CORRELATION_ID, sampleMessage.getId());
-                rabbitMessagingTemplate.convertAndSend(
-                        properties.outboundTopicExchange(),
-                        properties.outboundRoutingKey(),
-                        outboundMessage,
-                        headers);
+                messagePublisher.sendToOutboundQueue(sampleMessage);
             }
         } catch (Exception e) {
             LOGGER.error("Message Processing failed", e);
@@ -78,7 +65,7 @@ public class MessageListener {
             final Instant msgExpiry = Optional.ofNullable(headerMsgExpiry)
                     .orElseGet(() -> Instant.now().plus(properties.msgExpiryDuration()));
             LOGGER.info("Sending message for retry queue: {} {} {} {} {}", correlationId, updatedCount, headerMsgExpiry, nextRetryInstant, message);
-            sendToRetryQueue(correlationId, updatedCount, msgExpiry, nextRetryInstant, message);
+            messagePublisher.sendToRetryQueue(correlationId, updatedCount, msgExpiry, nextRetryInstant, message);
         } finally {
             MDC.clear();
         }
@@ -101,10 +88,10 @@ public class MessageListener {
                 LOGGER.info("Message expired: {} {} {} {} {}", correlationId, count, msgExpiry, msgNextRetry, message);
             } else if (msgNextRetry.isBefore(currentTime)) {
                 LOGGER.info("Sending message to main queue: {} {} {} {} {}", correlationId, count, msgExpiry, msgNextRetry, message);
-                sendToMainQueue(correlationId, count, msgExpiry, message);
+                messagePublisher.sendToMainQueue(correlationId, count, msgExpiry, message);
             } else {
                 LOGGER.debug("Re-queue message in retry queue: {} {}", correlationId, message);
-                sendToRetryQueue(correlationId, count, msgExpiry, msgNextRetry, message);
+                messagePublisher.sendToRetryQueue(correlationId, count, msgExpiry, msgNextRetry, message);
             }
         } catch (Exception e) {
             LOGGER.error("Message Processing failed during retry and sending once again for retry", e);
@@ -113,38 +100,9 @@ public class MessageListener {
                     .multiply(new BigDecimal(properties.nextRetryDuration().getSeconds()))
                     .longValue();
             final Instant nextRetryInstant = Instant.now().plusSeconds(seconds);
-            sendToRetryQueue(correlationId, count, msgExpiry, nextRetryInstant, message);
+            messagePublisher.sendToRetryQueue(correlationId, count, msgExpiry, nextRetryInstant, message);
         } finally {
             MDC.clear();
         }
     }
-
-    private void sendToRetryQueue(UUID correlationId, Integer count, Instant msgExpiry, Instant msgNextRetry, String message) {
-        Map<String, Object> requeueHeaders = Map.ofEntries(
-                Map.entry(X_CORRELATION_ID, correlationId),
-                Map.entry(X_COUNT, count),
-                Map.entry(X_MESSAGE_NEXT_RETRY, msgNextRetry),
-                Map.entry(X_MESSAGE_EXPIRY, msgExpiry)
-        );
-        rabbitMessagingTemplate.convertAndSend(
-                properties.inboundRetryTopicExchange(),
-                properties.inboundRetryRoutingKey(),
-                message,
-                requeueHeaders);
-    }
-
-    private void sendToMainQueue(UUID correlationId, Integer count, Instant msgExpiry, String message) {
-        Map<String, Object> retryHeaders = Map.ofEntries(
-                Map.entry(X_CORRELATION_ID, correlationId),
-                Map.entry(X_COUNT, count),
-                Map.entry(X_MESSAGE_EXPIRY, msgExpiry)
-        );
-        rabbitMessagingTemplate.convertAndSend(
-                properties.inboundTopicExchange(),
-                properties.inboundRoutingKey(),
-                message,
-                retryHeaders
-        );
-    }
-
 }
