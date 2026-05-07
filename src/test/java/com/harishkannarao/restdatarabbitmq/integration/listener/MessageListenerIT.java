@@ -17,7 +17,6 @@ import java.util.UUID;
 
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 
 public class MessageListenerIT extends AbstractBaseIntegration {
@@ -36,7 +35,6 @@ public class MessageListenerIT extends AbstractBaseIntegration {
     @BeforeEach
     public void setUp() {
         messagePublisher = getBean(MessagePublisher.class);
-        reset(messagePublisher);
         rabbitMessagingTemplate = getBean(RabbitMessagingTemplate.class);
         jsonConverter = getBean(JsonConverter.class);
         inboundTopicExchange = getProperty("messaging.message-processor.inbound-topic-exchange");

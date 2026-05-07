@@ -1,16 +1,21 @@
 package com.harishkannarao.restdatarabbitmq.integration;
 
 import com.harishkannarao.restdatarabbitmq.RestDataRabbitmqApplication;
+import com.harishkannarao.restdatarabbitmq.config.MockitoMockHolder;
 import com.harishkannarao.restdatarabbitmq.config.RabbitMqConfiguration;
 import com.harishkannarao.restdatarabbitmq.runner.MySqlTestRunner;
 import com.harishkannarao.restdatarabbitmq.runner.RabbitMqTestRunner;
 import com.harishkannarao.restdatarabbitmq.runner.SpringBootTestRunner;
 import com.harishkannarao.restdatarabbitmq.runner.SpringSettings;
 import org.junit.jupiter.api.BeforeEach;
+import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.core.env.Environment;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -18,6 +23,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class AbstractBaseIntegration {
+
+    private final static Logger LOGGER = LoggerFactory.getLogger(AbstractBaseIntegration.class);
 
     protected Set<Class<?>> additionalConfigurations() {
         return Collections.emptySet();
@@ -54,6 +61,15 @@ public abstract class AbstractBaseIntegration {
         RabbitAdmin rabbitAdmin = SpringBootTestRunner.getBean(RabbitAdmin.class);
         rabbitAdmin.purgeQueue("test-queue-1", false);
         rabbitAdmin.purgeQueue("test-queue-2", false);
+        resetMocks();
+    }
+
+    private void resetMocks() {
+        Map<String, MockitoMockHolder> mockBeans = SpringBootTestRunner.getBeansOfType(MockitoMockHolder.class);
+        mockBeans.forEach((mockName, mockitoMockHolder) -> {
+            LOGGER.info("Resetting mock: {}", mockName);
+            Mockito.reset(mockitoMockHolder.mock());
+        });
     }
 
     private static Properties createProperties() {

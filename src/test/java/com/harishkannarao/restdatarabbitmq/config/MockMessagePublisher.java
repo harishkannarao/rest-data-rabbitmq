@@ -14,4 +14,9 @@ public class MockMessagePublisher {
     public MessagePublisher mockMessagePublisher() {
         return Mockito.mock(MessagePublisher.class);
     }
+
+    @Bean
+    public MockitoMockHolder messagePublisherHolder(MessagePublisher messagePublisher) {
+        return new MockitoMockHolder(messagePublisher);
+    }
 }

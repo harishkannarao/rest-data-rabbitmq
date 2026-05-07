@@ -7,6 +7,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.env.Environment;
 
+import java.util.Map;
 import java.util.Optional;
 
 public class SpringBootTestRunner {
@@ -56,6 +57,9 @@ public class SpringBootTestRunner {
 
     public static <T> T getBean(Class<T> clazz) {
         return context.getBean(clazz);
+    }
+    public static <T> Map<String, T> getBeansOfType(Class<T> clazz) {
+        return context.getBeansOfType(clazz);
     }
 
     public static String getPort() {
