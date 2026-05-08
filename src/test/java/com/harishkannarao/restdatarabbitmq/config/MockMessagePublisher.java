@@ -9,14 +9,16 @@ import org.springframework.context.annotation.Primary;
 @TestConfiguration
 public class MockMessagePublisher {
 
+    private final MessagePublisher mockMessagePublisher = Mockito.mock();
+
     @Bean(name = "messagePublisher")
     @Primary
     public MessagePublisher mockMessagePublisher() {
-        return Mockito.mock(MessagePublisher.class);
+        return mockMessagePublisher;
     }
 
     @Bean
-    public MockitoMockHolder messagePublisherHolder(MessagePublisher messagePublisher) {
-        return new MockitoMockHolder(messagePublisher);
+    public MockitoMockHolder messagePublisherHolder() {
+        return new MockitoMockHolder(mockMessagePublisher);
     }
 }
