@@ -26,7 +26,7 @@ public class TestInboundDlqMessageListener {
         this.storeReceivedMessages = storeReceivedMessages;
     }
 
-    @RabbitListener(queues = "${messaging.message-processor.inbound-queue}", concurrency = "1")
+    @RabbitListener(queues = "${messaging.message-processor.inbound-queue}.dlq", concurrency = "1")
     public void handleMessage(@Header("X-Correlation-ID") UUID correlationId, final String message) {
         try {
             MDC.put("X-Correlation-ID", correlationId.toString());

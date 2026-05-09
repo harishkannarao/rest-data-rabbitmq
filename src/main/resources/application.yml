@@ -10,6 +10,14 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
     hibernate:
       ddl-auto: validate
+  rabbitmq:
+    listener:
+      simple:
+        default-requeue-rejected: false
+        retry:
+          enabled: false
+#          max-attempts: 3
+#          initial-interval: "1000ms"
 
 logging:
   pattern:

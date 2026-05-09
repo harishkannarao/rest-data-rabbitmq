@@ -11,8 +11,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.amqp.rabbit.core.RabbitMessagingTemplate;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 
+import static java.time.Instant.now;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
@@ -77,17 +79,32 @@ public class MessageListenerIT extends AbstractBaseIntegration {
 
         doThrow(new RuntimeException("outbound publish error"))
                 .when(messagePublisher)
-                .sendToOutboundQueue(eq(sampleMessage));
+                .sendToOutboundQueue(any());
 
         doThrow(new RuntimeException("retry publish error"))
                 .when(messagePublisher)
-                .sendToRetryQueue(eq(sampleMessage.getId()), eq(1), any(), any(), eq(message));
+                .sendToRetryQueue(any(), any(), any(), any(), any());
 
         rabbitMessagingTemplate.convertAndSend(inboundTopicExchange, inboundRoutingKey, message, headers);
 
         await()
-                .atMost(Duration.ofSeconds(3))
+                .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> assertThat(Map.copyOf(TestInboundDlqMessageListener.HOLDER))
                         .containsEntry(sampleMessage.getId(), message));
+
+        verify(messagePublisher)
+                .sendToOutboundQueue(eq(sampleMessage));
+
+        verify(messagePublisher)
+                .sendToRetryQueue(
+                        eq(sampleMessage.getId()),
+                        eq(2),
+                        assertArg(expiry ->
+                                assertThat(expiry)
+                                        .isBetween(now().plusSeconds(18), now().plusSeconds(22))),
+                        assertArg(nextRetry ->
+                                assertThat(nextRetry)
+                                        .isBetween(now().plusSeconds(3), now().plusSeconds(7))),
+                        eq(message));
     }
 }
