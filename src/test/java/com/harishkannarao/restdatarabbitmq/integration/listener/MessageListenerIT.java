@@ -4,20 +4,20 @@ import com.harishkannarao.restdatarabbitmq.config.MockMessagePublisher;
 import com.harishkannarao.restdatarabbitmq.entity.SampleMessage;
 import com.harishkannarao.restdatarabbitmq.integration.AbstractBaseIntegration;
 import com.harishkannarao.restdatarabbitmq.json.JsonConverter;
+import com.harishkannarao.restdatarabbitmq.listener.TestInboundDlqMessageListener;
 import com.harishkannarao.restdatarabbitmq.publisher.MessagePublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.amqp.rabbit.core.RabbitMessagingTemplate;
 
 import java.time.Duration;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 public class MessageListenerIT extends AbstractBaseIntegration {
 
@@ -30,6 +30,13 @@ public class MessageListenerIT extends AbstractBaseIntegration {
     @Override
     protected Set<Class<?>> additionalConfigurations() {
         return Set.of(MockMessagePublisher.class);
+    }
+
+    @Override
+    protected Properties additionalProperties() {
+        Properties properties = new Properties();
+        properties.setProperty("test.store-received-messages", "true");
+        return properties;
     }
 
     @BeforeEach
@@ -56,5 +63,31 @@ public class MessageListenerIT extends AbstractBaseIntegration {
                 .atMost(Duration.ofSeconds(3))
                 .untilAsserted(() ->
                         verify(messagePublisher).sendToOutboundQueue(eq(sampleMessage)));
+    }
+
+    @Test
+    public void message_sent_to_dead_letter_queue_when_exception_during_retry_attempt() {
+        SampleMessage sampleMessage = SampleMessage.builder()
+                .id(UUID.randomUUID())
+                .value("Hello World" + UUID.randomUUID())
+                .build();
+        List<SampleMessage> inputMessages = List.of(sampleMessage);
+        String message = jsonConverter.toJson(inputMessages);
+        Map<String, Object> headers = Map.of("X-Correlation-ID", sampleMessage.getId());
+
+        doThrow(new RuntimeException("outbound publish error"))
+                .when(messagePublisher)
+                .sendToOutboundQueue(eq(sampleMessage));
+
+        doThrow(new RuntimeException("retry publish error"))
+                .when(messagePublisher)
+                .sendToRetryQueue(eq(sampleMessage.getId()), eq(1), any(), any(), eq(message));
+
+        rabbitMessagingTemplate.convertAndSend(inboundTopicExchange, inboundRoutingKey, message, headers);
+
+        await()
+                .atMost(Duration.ofSeconds(3))
+                .untilAsserted(() -> assertThat(Map.copyOf(TestInboundDlqMessageListener.HOLDER))
+                        .containsEntry(sampleMessage.getId(), message));
     }
 }

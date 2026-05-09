@@ -2,7 +2,7 @@ package com.harishkannarao.restdatarabbitmq.steps;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.harishkannarao.restdatarabbitmq.entity.SampleMessage;
-import com.harishkannarao.restdatarabbitmq.listener.TestMessageListener;
+import com.harishkannarao.restdatarabbitmq.listener.TestOutboundMessageListener;
 import com.harishkannarao.restdatarabbitmq.logback.LogbackTestAppender;
 import com.harishkannarao.restdatarabbitmq.steps.holder.LogbackAppenderHolder;
 import com.harishkannarao.restdatarabbitmq.steps.holder.MessageListenerHolder;
@@ -32,7 +32,7 @@ public class MessageListenerSteps extends AbstractBaseSteps {
 
     @Given("I clear messages in TestMessageListener")
     public void iClearMessagesInTestMessageListener() {
-        TestMessageListener.HOLDER.clear();
+        TestOutboundMessageListener.HOLDER.clear();
     }
 
     @Given("a random sample message called {string}")
@@ -70,8 +70,8 @@ public class MessageListenerSteps extends AbstractBaseSteps {
     @Then("I should see sample message {string} in TestMessageListener")
     public void iShouldSeeSampleMessageInTestMessageListener(String canonicalName) {
         SampleMessage sampleMessage = messageListenerHolder.getSampleMessages().get(canonicalName);
-        await().atMost(Duration.ofSeconds(20)).until(() -> TestMessageListener.HOLDER.containsKey(sampleMessage.getId()));
-        var result = TestMessageListener.HOLDER.get(sampleMessage.getId());
+        await().atMost(Duration.ofSeconds(20)).until(() -> TestOutboundMessageListener.HOLDER.containsKey(sampleMessage.getId()));
+        var result = TestOutboundMessageListener.HOLDER.get(sampleMessage.getId());
         assertThat(result.getValue()).isEqualTo(sampleMessage.getValue());
     }
 

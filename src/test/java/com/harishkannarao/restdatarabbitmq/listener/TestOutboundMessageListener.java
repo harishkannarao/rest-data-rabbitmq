@@ -17,16 +17,16 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-public class TestMessageListener {
+public class TestOutboundMessageListener {
 
     public static final ConcurrentHashMap<UUID, SampleMessage> HOLDER = new ConcurrentHashMap<>();
-    private static final Logger logger = LoggerFactory.getLogger(TestMessageListener.class);
+    private static final Logger logger = LoggerFactory.getLogger(TestOutboundMessageListener.class);
 
     private final boolean storeReceivedMessages;
     private final JsonConverter jsonConverter;
 
     @Autowired
-    public TestMessageListener(
+    public TestOutboundMessageListener(
             @Value("${test.store-received-messages}") boolean storeReceivedMessages,
             JsonConverter jsonConverter) {
         this.storeReceivedMessages = storeReceivedMessages;

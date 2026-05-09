@@ -2,7 +2,7 @@ package com.harishkannarao.restdatarabbitmq.integration.publisher;
 
 import com.harishkannarao.restdatarabbitmq.entity.SampleMessage;
 import com.harishkannarao.restdatarabbitmq.integration.AbstractBaseIntegration;
-import com.harishkannarao.restdatarabbitmq.listener.TestMessageListener;
+import com.harishkannarao.restdatarabbitmq.listener.TestOutboundMessageListener;
 import com.harishkannarao.restdatarabbitmq.publisher.MessagePublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,7 +43,7 @@ public class MessagePublisherIT extends AbstractBaseIntegration {
         await()
                 .atMost(Duration.ofSeconds(3))
                 .untilAsserted(() -> {
-                    Map<UUID, SampleMessage> publishedMessages = Map.copyOf(TestMessageListener.HOLDER);
+                    Map<UUID, SampleMessage> publishedMessages = Map.copyOf(TestOutboundMessageListener.HOLDER);
                     assertThat(publishedMessages)
                             .hasEntrySatisfying(sampleMessage.getId(),
                                     actualMessage -> assertThat(actualMessage).isEqualTo(sampleMessage));
