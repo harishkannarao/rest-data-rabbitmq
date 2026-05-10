@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.amqp.rabbit.core.RabbitMessagingTemplate;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.util.*;
 
 import static java.time.Instant.now;
@@ -106,5 +105,25 @@ public class MessageListenerIT extends AbstractBaseIntegration {
                                 assertThat(nextRetry)
                                         .isBetween(now().plusSeconds(3), now().plusSeconds(7))),
                         eq(message));
+    }
+
+    @Test
+    public void message_sent_to_dead_letter_queue_when_missing_mandatory_header() {
+        SampleMessage sampleMessage = SampleMessage.builder()
+                .id(UUID.randomUUID())
+                .value("Hello World" + UUID.randomUUID())
+                .build();
+        List<SampleMessage> inputMessages = List.of(sampleMessage);
+        String message = jsonConverter.toJson(inputMessages);
+        Map<String, Object> emptyHeaders = Collections.emptyMap();
+
+        rabbitMessagingTemplate.convertAndSend(inboundTopicExchange, inboundRoutingKey, message, emptyHeaders);
+
+        await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> assertThat(Map.copyOf(TestInboundDlqMessageListener.HOLDER))
+                        .containsEntry(sampleMessage.getId(), message));
+
+        verifyNoInteractions(messagePublisher);
     }
 }
